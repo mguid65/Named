@@ -1,0 +1,70 @@
+name: CMake Ubuntu+Windows
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+
+      matrix:
+        include:
+          - os: windows-latest
+            build_type: Release
+            c_compiler: cl
+            cpp_compiler: cl
+            conan_profile: default-windows
+            preset: conan-default
+            build_preset: conan-release
+          - os: ubuntu-24.04
+            build_type: Release
+            c_compiler: gcc
+            cpp_compiler: g++
+            conan_profile: default-ubuntu
+            preset: conan-release
+            build_preset: conan-release
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Conan
+      id: conan
+      uses: turtlebrowser/get-conan@main
+      with:
+        version: 2.0.17
+
+    - name: Conan Profile Install
+      run: conan config install ${{github.workspace}}/.github/conan/${{matrix.conan_profile}} -tf=profiles
+
+    - name: Rename Conan Profile
+      shell: bash
+      run: mv $(conan config home)/profiles/${{matrix.conan_profile}} $(conan config home)/profiles/default
+
+    - name: Run Conan
+      run: conan install . -b missing
+
+    - name: Configure CMake
+      run: cmake --preset ${{matrix.preset}}
+
+    - name: Build
+      run: cmake --build --preset ${{matrix.build_preset}}
+
+    - name: Conan Create
+      run: conan create . -b missing
+
+    - name: Run Sample
+      working-directory: ${{github.workspace}}/build
+      run: ./Release/sample
+
+    - name: Test
+      working-directory: ${{github.workspace}}/build/Release
+      run: ctest -C --output-on-failure
