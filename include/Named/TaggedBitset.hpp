@@ -71,8 +71,8 @@ struct TaggedBitset : std::bitset<sizeof...(Tags)> {
    */
   template <StringLiteral Tag>
     requires(sizeof...(Tags) > 0 && is_one_of<Tag, Tags...>())
-  [[nodiscard]] TaggedBitset<Tags...>& set(bool value = true) {
-    static_cast<const Base&>(*this).set(index_in_pack<Tag, Tags...>(), value);
+  TaggedBitset<Tags...>& set(bool value = true) {
+    static_cast<Base&>(*this).set(index_in_pack<Tag, Tags...>(), value);
     return *this;
   }
 
@@ -83,8 +83,8 @@ struct TaggedBitset : std::bitset<sizeof...(Tags)> {
    */
   template <StringLiteral Tag>
     requires(sizeof...(Tags) > 0 && is_one_of<Tag, Tags...>())
-  [[nodiscard]] TaggedBitset<Tags...>& reset() {
-    static_cast<const Base&>(*this).reset(index_in_pack<Tag, Tags...>());
+  TaggedBitset<Tags...>& reset() {
+    static_cast<Base&>(*this).reset(index_in_pack<Tag, Tags...>());
     return *this;
   }
 
@@ -95,8 +95,8 @@ struct TaggedBitset : std::bitset<sizeof...(Tags)> {
    */
   template <StringLiteral Tag>
     requires(sizeof...(Tags) > 0 && is_one_of<Tag, Tags...>())
-  [[nodiscard]] TaggedBitset<Tags...>& flip() {
-    static_cast<const Base&>(*this).flip(index_in_pack<Tag, Tags...>());
+  TaggedBitset<Tags...>& flip() {
+    static_cast<Base&>(*this).flip(index_in_pack<Tag, Tags...>());
     return *this;
   }
 
@@ -111,8 +111,8 @@ struct TaggedBitset : std::bitset<sizeof...(Tags)> {
    * @param other another TaggedBitset to compare against
    * @return Returns true if all pairs of corresponding elements are equal; otherwise false
    */
-  template <typename... OtherTags>
-  [[nodiscard]] constexpr bool operator==(const NamedTuple<OtherTags...>& other) const {
+  template <StringLiteral... OtherTags>
+  [[nodiscard]] constexpr bool operator==(const TaggedBitset<OtherTags...>& other) const {
     static_assert(sizeof...(Tags) == sizeof...(OtherTags));
     return ((this->test<Tags>() == other.template test<OtherTags>()) && ...);
   }
