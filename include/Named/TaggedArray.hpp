@@ -37,6 +37,7 @@
 #include <array>
 
 #include "Named/detail/StringLiteral.hpp"
+#include "Named/detail/Common.hpp"
 
 namespace mguid {
 
@@ -50,14 +51,24 @@ struct TaggedArray : std::array<ValueType, sizeof...(Tags)> {
   using Base = std::array<ValueType, sizeof...(Tags)>;
   using Base::Base;
 
+  /**
+   * @brief Get the array element at the Tag provided
+   * @tparam Tag a tag to find the element for
+   * @return the element corresponding to Tag
+   */
   template <StringLiteral Tag>
-  [[nodiscard]] constexpr Base::reference at() {
-    return at(key_index<Tag, Tags...>());
+  [[nodiscard]] constexpr typename Base::reference at() {
+    return at(index_in_pack<Tag, Tags...>());
   }
 
+  /**
+   * @brief Get the array element at the Tag provided
+   * @tparam Tag a tag to find the element for
+   * @return the element corresponding to Tag
+   */
   template <StringLiteral Tag>
-  [[nodiscard]] constexpr Base::const_reference at() const {
-    return at(key_index<Tag, Tags...>());
+  [[nodiscard]] constexpr typename Base::const_reference at() const {
+    return at(index_in_pack<Tag, Tags...>());
   }
 };
 

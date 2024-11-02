@@ -36,6 +36,7 @@
 #include <bitset>
 
 #include "Named/detail/StringLiteral.hpp"
+#include "Named/detail/Common.hpp"
 
 namespace mguid {
 
@@ -58,7 +59,7 @@ struct TaggedBitset : std::bitset<sizeof...(Tags)> {
   template <StringLiteral Tag>
     requires(sizeof...(Tags) > 0 && is_one_of<Tag, Tags...>())
   [[nodiscard]] bool test() const {
-    return static_cast<const Base&>(*this).test(key_index<Tag, Tags...>());
+    return static_cast<const Base&>(*this).test(index_in_pack<Tag, Tags...>());
   }
 
   /**
@@ -70,7 +71,7 @@ struct TaggedBitset : std::bitset<sizeof...(Tags)> {
   template <StringLiteral Tag>
     requires(sizeof...(Tags) > 0 && is_one_of<Tag, Tags...>())
   [[nodiscard]] TaggedBitset<Tags...>& set(bool value = true) {
-    static_cast<const Base&>(*this).set(key_index<Tag, Tags...>(), value);
+    static_cast<const Base&>(*this).set(index_in_pack<Tag, Tags...>(), value);
     return *this;
   }
 
@@ -82,7 +83,7 @@ struct TaggedBitset : std::bitset<sizeof...(Tags)> {
   template <StringLiteral Tag>
     requires(sizeof...(Tags) > 0 && is_one_of<Tag, Tags...>())
   [[nodiscard]] TaggedBitset<Tags...>& reset() {
-    static_cast<const Base&>(*this).reset(key_index<Tag, Tags...>());
+    static_cast<const Base&>(*this).reset(index_in_pack<Tag, Tags...>());
     return *this;
   }
 
@@ -94,7 +95,7 @@ struct TaggedBitset : std::bitset<sizeof...(Tags)> {
   template <StringLiteral Tag>
     requires(sizeof...(Tags) > 0 && is_one_of<Tag, Tags...>())
   [[nodiscard]] TaggedBitset<Tags...>& flip() {
-    static_cast<const Base&>(*this).flip(key_index<Tag, Tags...>());
+    static_cast<const Base&>(*this).flip(index_in_pack<Tag, Tags...>());
     return *this;
   }
 

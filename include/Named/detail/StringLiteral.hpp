@@ -33,20 +33,23 @@
 #ifndef NAMED_STRINGLITERAL_HPP
 #define NAMED_STRINGLITERAL_HPP
 
+#include <algorithm>
+#include <string_view>
+
 namespace mguid {
 
 /**
  * @brief Compile time string literal container
  * @tparam NSize size of string literal
  */
-template <std::size_t NSize> struct StringLiteral {
+template <size_t NSize>
+struct StringLiteral {
   // NOLINTBEGIN(google-explicit-constructor)
   /**
    * @brief Construct a StringLiteral from a string literal
    * @param str a string literal as a const reference to a sized char array
    */
-  constexpr explicit(false) StringLiteral(char const (&str)[NSize])
-      : value{'\0'} {
+  constexpr explicit(false) StringLiteral(char const (&str)[NSize]) : value{'\0'} {
     std::copy_n(str, NSize, value);
   }
   // NOLINTEND(google-explicit-constructor)
@@ -60,13 +63,11 @@ template <std::size_t NSize> struct StringLiteral {
    * @param other StringLiteral to compare with
    * @return true if equal; otherwise false
    */
-  template <std::size_t MSize>
+  template <size_t MSize>
   [[nodiscard]] constexpr bool operator==(StringLiteral<MSize> other) const {
-    constexpr auto equal = [](const auto &lhs, const auto &rhs) {
-      for (std::size_t i{0}; i < NSize; i++) {
-        if (lhs.value[i] != rhs.value[i]) {
-          return false;
-        }
+    constexpr auto equal = [](const auto& lhs, const auto& rhs) {
+      for (size_t i{0}; i < NSize; i++) {
+        if (lhs.value[i] != rhs.value[i]) { return false; }
       }
       return true;
     };
@@ -76,7 +77,8 @@ template <std::size_t NSize> struct StringLiteral {
   /**
    * @brief Equality compare against a string_view
    *
-   * subtract one because the string_view doesn't account for the null-terminator
+   * subtract one because the string_view doesn't account for the
+   * null-terminator
    *
    * @param sv string_view to compare with
    * @return true if equal; otherwise false
@@ -102,29 +104,8 @@ template <std::size_t NSize> struct StringLiteral {
   }
 
   char value[NSize];
-  static constexpr std::size_t size{NSize};
+  static constexpr size_t size{NSize};
 };
-
-/**
- * @brief Find the index of a StringLiteral in a pack of StringLiteral non-types
- *
- * NOTE: This assumes that the StringLiteral with the tag Key exists within the pack
- *
- * @tparam Needle StringLiteral tag to search for
- * @tparam Haystack pack of StringLiteral non-types
- * @return the index equivalent of the location of the type with the tag within the pack
- */
-template <StringLiteral Needle, StringLiteral... Haystack>
-constexpr std::size_t key_index() {
-  std::size_t index{0};
-  ([&index]<StringLiteral Type>() {
-    if (Needle == Type) { return false; }
-    ++index;
-    return true;
-  }.template operator()<Haystack>() &&
-   ...);
-  return index;
-}
 
 /**
  * @brief Check if Key is one of the tags within the StringLiteral pack
@@ -137,6 +118,39 @@ constexpr bool is_one_of() {
   return (... || (Key == Tags));
 }
 
-} // namespace mguid
+/**
+ * @brief Wrap a constant into a type
+ * @tparam Value value to turn into type
+ */
+template <auto Value>
+struct ConstantWrapper {
+  static constexpr auto value = Value;
+};
 
-#endif // NAMED_STRINGLITERAL_HPP
+namespace literals {
+
+/**
+ * @brief UDL to create a StringLiteralHolder from a char string literal
+ * @tparam Tag value make into StringLiteralHolder
+ * @return StringLiteralHolder with Tag as its value
+ */
+template <StringLiteral Tag>
+constexpr auto operator""_t() {
+  return ConstantWrapper<Tag>{};
+}
+
+/**
+ * @brief UDL to create a StringLiteral from a char string literal
+ * @tparam Tag String literal to return
+ * @return Tag
+ */
+template <StringLiteral Tag>
+constexpr auto operator""_sl() {
+  return Tag;
+}
+
+}  // namespace literals
+
+}  // namespace mguid
+
+#endif  // NAMED_STRINGLITERAL_HPP
