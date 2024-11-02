@@ -1,2 +1,3 @@
 # Named
-A collection of containers that use the tagged/named pattern.
+
+A collection of containers using the named/tagged pattern
