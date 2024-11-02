@@ -483,14 +483,14 @@ TEST_CASE("Apply") {
     mguid::apply(
         []([[maybe_unused]] const auto&& arg) {
           const auto& [first, second] = arg;
-          REQUIRE(first.view() == "test");
+          REQUIRE(std::string(first.view()) == "test");
           REQUIRE(second == 42);
         },
         nt);
     mguid::apply(
         []([[maybe_unused]] const auto&& arg) {
           const auto& [first, second] = arg;
-          REQUIRE(first.view() == "test");
+          REQUIRE(std::string(first.view()) == "test");
           REQUIRE(second == 42);
         },
         const_nt);
@@ -502,26 +502,26 @@ TEST_CASE("Apply") {
     mguid::apply(
         []([[maybe_unused]] const auto&& arg1, const auto&& arg2, const auto&& arg3) {
           const auto& [first1, second1] = arg1;
-          REQUIRE(first1.view() == "test1");
+          REQUIRE(std::string(first1.view()) == "test1");
           REQUIRE(second1 == 1);
           const auto& [first2, second2] = arg2;
-          REQUIRE(first2.view() == "test2");
+          REQUIRE(std::string(first2.view()) == "test2");
           REQUIRE(second2 == 2);
           const auto& [first3, second3] = arg3;
-          REQUIRE(first3.view() == "test3");
+          REQUIRE(std::string(first3.view()) == "test3");
           REQUIRE(second3 == 3);
         },
         nt);
     mguid::apply(
         []([[maybe_unused]] const auto&& arg1, const auto&& arg2, const auto&& arg3) {
           const auto& [first1, second1] = arg1;
-          REQUIRE(first1.view() == "test1");
+          REQUIRE(std::string(first1.view()) == "test1");
           REQUIRE(second1 == 1);
           const auto& [first2, second2] = arg2;
-          REQUIRE(first2.view() == "test2");
+          REQUIRE(std::string(first2.view()) == "test2");
           REQUIRE(second2 == 2);
           const auto& [first3, second3] = arg3;
-          REQUIRE(first3.view() == "test3");
+          REQUIRE(std::string(first3.view()) == "test3");
           REQUIRE(second3 == 3);
         },
         const_nt);
