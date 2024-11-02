@@ -36,6 +36,8 @@
 #include <algorithm>
 #include <string_view>
 
+#include "Named/detail/Common.hpp"
+
 namespace mguid {
 
 /**
@@ -106,6 +108,13 @@ struct StringLiteral {
   char value[NSize];
   static constexpr size_t size{NSize};
 };
+
+/**
+ * @brief Constrains that a pack of non-types contains all unique values
+ * @tparam Nttps pack of non-types
+ */
+template <auto... Nttps>
+concept AllUniqueTags = all_unique_nttps<Nttps...>();
 
 /**
  * @brief Check if Key is one of the tags within the StringLiteral pack
