@@ -45,6 +45,7 @@ namespace mguid {
  * @tparam Tags pack of StringLiteral tags
  */
 template <StringLiteral... Tags>
+  requires AllUniqueTags<Tags...>
 struct TaggedBitset : std::bitset<sizeof...(Tags)> {
   using Base = std::bitset<sizeof...(Tags)>;
   using Base::Base;
