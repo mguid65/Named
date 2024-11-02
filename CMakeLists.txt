@@ -33,7 +33,8 @@ set(NAMED_HEADERS
         include/Named/detail/SynthThreeWayResult.hpp
 )
 
-add_library(named INTERFACE)
+add_library(named INTERFACE
+        include/Named/detail/Common.hpp)
 target_include_directories(named INTERFACE include)
 target_sources(named INTERFACE ${NAMED_HEADERS})
 set_target_properties(named PROPERTIES LINKER_LANGUAGE CXX)
