@@ -34,6 +34,7 @@
 #define NAMED_TAGGEDBITSET_HPP
 
 #include <bitset>
+#include <tuple>
 
 #include "Named/detail/StringLiteral.hpp"
 #include "Named/detail/Common.hpp"
@@ -126,6 +127,14 @@ struct TaggedBitset : std::bitset<sizeof...(Tags)> {
   template <std::size_t NSize>
   [[nodiscard]] constexpr bool operator==(const std::bitset<NSize>& other) const {
     return static_cast<const Base&>(*this) == other;
+  }
+
+  /**
+   * @brief Get tags as a tuple
+   * @return A tuple of the tags
+   */
+  [[nodiscard]] static constexpr auto tags() {
+    return std::tuple{Tags...};
   }
 };
 
