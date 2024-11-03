@@ -30,8 +30,8 @@
  * @endcond
  */
 
-#ifndef COMMON_HPP
-#define COMMON_HPP
+#ifndef MGUID_NAMED_COMMON_HPP
+#define MGUID_NAMED_COMMON_HPP
 
 #include <algorithm>
 #include <stdexcept>
@@ -105,4 +105,4 @@ constexpr bool all_unique_nttps() {
 
 }  // namespace mguid
 
-#endif  // COMMON_HPP
+#endif  // MGUID_NAMED_COMMON_HPP
