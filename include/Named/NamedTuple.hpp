@@ -266,6 +266,14 @@ struct NamedTuple : std::tuple<typename ExtractType<NamedTypes>::type...> {
 
     return result;
   }
+
+  /**
+   * @brief Get the array of tags as a tuple
+   * @return A tuple of the tags
+   */
+  [[nodiscard]] static constexpr auto tags() {
+    return std::tuple{NamedTypes::tag()...};
+  }
 };
 }  // namespace mguid
 

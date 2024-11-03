@@ -95,7 +95,7 @@ struct NamedType {
    * @brief Get the tag passed to this NamedType
    * @return the tag passed to this NamedType
    */
-  constexpr StringLiteral<Tag.size> tag() const { return Tag; }
+  static constexpr auto tag() { return Tag; }
 };
 
 /**

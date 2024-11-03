@@ -105,6 +105,16 @@ struct StringLiteral {
     return std::string_view{value, size - 1};
   }
 
+  /**
+   * @brief Ostream insertion operator overload for StringLiteral
+   * @param os reference to some ostream
+   * @return reference to os
+   */
+  std::ostream& operator<<(std::ostream& os) {
+    os << view();
+    return os;
+  }
+
   char value[NSize];
   static constexpr size_t size{NSize};
 };

@@ -88,3 +88,87 @@ TEST_CASE("TaggedBitset Test") {
     REQUIRE(tb.test<"key4">() == 1);
   }
 }
+
+TEST_CASE("TaggedBitset Equality Comparison") {
+  mguid::TaggedBitset<"key1", "key2", "key3", "key4"> tb1{0b1010};
+  mguid::TaggedBitset<"key1", "key2", "key3", "key4"> tb2{0b1010};
+  mguid::TaggedBitset<"key1", "key2", "key3", "key4"> tb3{0b0101};
+
+  SECTION("Equality operator with same TaggedBitset") {
+    REQUIRE(tb1 == tb2);
+    REQUIRE(!(tb1 == tb3));
+  }
+
+  SECTION("Equality operator with std::bitset") {
+    std::bitset<4> std_bs{0b1010};
+    REQUIRE(tb1 == std_bs);
+
+    std::bitset<4> std_bs_diff{0b0101};
+    REQUIRE(!(tb1 == std_bs_diff));
+  }
+}
+
+TEST_CASE("TaggedBitset Reset") {
+  mguid::TaggedBitset<"key1", "key2", "key3", "key4"> tb{0b1111};
+
+  SECTION("Reset individual bit") {
+    tb.reset<"key1">();
+    REQUIRE(!tb.test<"key1">());
+    REQUIRE(tb.test<"key2">());
+    REQUIRE(tb.test<"key3">());
+    REQUIRE(tb.test<"key4">());
+  }
+
+  SECTION("Reset all bits") {
+    tb.reset();
+    REQUIRE(!tb.test<"key1">());
+    REQUIRE(!tb.test<"key2">());
+    REQUIRE(!tb.test<"key3">());
+    REQUIRE(!tb.test<"key4">());
+  }
+}
+
+TEST_CASE("TaggedBitset Flip") {
+  SECTION("Flip individual bit") {
+    mguid::TaggedBitset<"key1", "key2", "key3", "key4"> tb{"0101"};
+
+    tb.flip<"key1">();
+    tb.flip<"key2">();
+
+    REQUIRE(tb.test<"key1">());
+    REQUIRE(!tb.test<"key2">());
+    REQUIRE(!tb.test<"key3">());
+    REQUIRE(tb.test<"key4">());
+  }
+
+  SECTION("Flip all bits") {
+    mguid::TaggedBitset<"key1", "key2", "key3", "key4"> tb{0b0101};
+
+    tb.flip();
+    REQUIRE(tb.test<"key1">());
+    REQUIRE(!tb.test<"key2">());
+    REQUIRE(tb.test<"key3">());
+    REQUIRE(!tb.test<"key4">());
+  }
+}
+
+TEST_CASE("TaggedBitset Mixed Operations") {
+  mguid::TaggedBitset<"key1", "key2", "key3", "key4"> tb;
+
+  SECTION("Set, test, and reset sequentially") {
+    tb.set<"key1">();
+    REQUIRE(tb.test<"key1">());
+
+    tb.set<"key2">(false);
+    REQUIRE(!tb.test<"key2">());
+
+    tb.set<"key3">(true);
+    REQUIRE(tb.test<"key3">());
+
+    tb.reset<"key1">();
+    REQUIRE(!tb.test<"key1">());
+
+    tb.flip<"key4">();
+    REQUIRE(tb.test<"key4">());
+  }
+}
