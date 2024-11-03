@@ -54,6 +54,40 @@ struct TaggedBitset : std::bitset<sizeof...(Tags)> {
   using Base::reset;
 
   /**
+   * @brief Find the bit with the Tag provided
+   * @param tag a tag to find the bit for
+   * @return the bit corresponding to Tag
+   */
+  [[nodiscard]] constexpr typename Base::reference find(std::string_view tag) {
+    size_t index{0};
+    ([&index, &tag]<auto Type>() {
+      if (tag == Type) { return false; }
+      ++index;
+      return true;
+    }.template operator()<Tags>() &&
+     ...);
+    if (index >= sizeof...(Tags)) { throw std::out_of_range("Out of range"); }
+    return static_cast<Base&>(*this)[sizeof...(Tags) - 1 - index];
+  }
+
+  /**
+   * @brief Find the bit with the Tag provided
+   * @param tag a tag to find the bit for
+   * @return the bit corresponding to Tag
+   */
+  [[nodiscard]] constexpr bool find(std::string_view tag) const {
+    size_t index{0};
+    ([&index, &tag]<auto Type>() {
+      if (tag == Type) { return false; }
+      ++index;
+      return true;
+    }.template operator()<Tags>() &&
+     ...);
+    if (index >= sizeof...(Tags)) { throw std::out_of_range("Out of range"); }
+    return static_cast<const Base&>(*this)[sizeof...(Tags) - 1 - index];
+  }
+
+  /**
    * @brief Get the value of the bit at position corresponding to the Tag
    * @tparam Tag a tag to search for
    * @return value of the bit at position corresponding to the Tag

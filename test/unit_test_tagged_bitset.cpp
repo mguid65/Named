@@ -62,7 +62,6 @@ TEST_CASE("TaggedBitset Set") {
   }
 }
 
-
 TEST_CASE("TaggedBitset Test") {
   mguid::TaggedBitset<"key1", "key2", "key3", "key4"> tb{0b1010};
   const mguid::TaggedBitset<"key1", "key2", "key3", "key4"> const_tb{0b1010};
@@ -170,5 +169,38 @@ TEST_CASE("TaggedBitset Mixed Operations") {
 
     tb.flip<"key4">();
     REQUIRE(tb.test<"key4">());
+  }
+}
+
+TEST_CASE("TaggedBitset find by tag") {
+  SECTION("Find and modify bits by tag") {
+    mguid::TaggedBitset<"flag1", "flag2", "flag3"> bs;
+
+    bs.find("flag1") = true;
+    bs.find("flag2") = false;
+    bs.find("flag3") = true;
+
+    REQUIRE(bs.find("flag1") == true);
+    REQUIRE(bs.find("flag2") == false);
+    REQUIRE(bs.find("flag3") == true);
+  }
+
+  SECTION("Find in const TaggedBitset") {
+    mguid::TaggedBitset<"flag1", "flag2", "flag3"> bs;
+
+    bs.find("flag1") = true;
+    bs.find("flag3") = true;
+
+    const auto& const_bs = bs;
+
+    REQUIRE(const_bs.find("flag1") == true);
+    REQUIRE(const_bs.find("flag2") == false);
+    REQUIRE(const_bs.find("flag3") == true);
+  }
+
+  SECTION("Nonexistent tag") {
+    mguid::TaggedBitset<"flag1", "flag2", "flag3"> bs;
+
+    REQUIRE_THROWS_AS(bs.find("nonexistent"), std::out_of_range);
   }
 }

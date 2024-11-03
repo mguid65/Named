@@ -119,3 +119,30 @@ TEST_CASE("std::get with tuple_element for TaggedArray") {
   std::get<1>(arr) = 42;
   REQUIRE(std::get<1>(arr) == 42);
 }
+
+TEST_CASE("TaggedArray find by tag") {
+  using ArrayType = mguid::TaggedArray<int, "tag1", "tag2", "tag3">;
+  ArrayType arr{1, 2, 3};
+
+  SECTION("Find existing tags") {
+    REQUIRE(arr.find("tag1") == 1);
+    REQUIRE(arr.find("tag2") == 2);
+    REQUIRE(arr.find("tag3") == 3);
+  }
+
+  SECTION("Modify value by tag using find") {
+    arr.find("tag2") = 42;
+    REQUIRE(arr.find("tag2") == 42);
+  }
+
+  SECTION("Find in const TaggedArray") {
+    const ArrayType const_arr{10, 20, 30};
+    REQUIRE(const_arr.find("tag1") == 10);
+    REQUIRE(const_arr.find("tag2") == 20);
+    REQUIRE(const_arr.find("tag3") == 30);
+  }
+
+  SECTION("Nonexistent tag") {
+    REQUIRE_THROWS_AS(arr.find("nonexistent"), std::out_of_range);
+  }
+}

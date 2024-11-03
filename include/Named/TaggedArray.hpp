@@ -82,6 +82,40 @@ struct TaggedArray : std::array<ValueType, sizeof...(Tags)> {
   }
 
   /**
+   * @brief Find the array element with the Tag provided
+   * @param tag a tag to find the element for
+   * @return the element corresponding to Tag
+   */
+  [[nodiscard]] constexpr typename Base::reference find(std::string_view tag) {
+    size_t index{0};
+    ([&index, &tag]<auto Type>() {
+      if (tag == Type) { return false; }
+      ++index;
+      return true;
+    }.template operator()<Tags>() &&
+     ...);
+    if (index >= sizeof...(Tags)) { throw std::out_of_range("Out of range"); }
+    return static_cast<Base&>(*this)[index];
+  }
+
+  /**
+   * @brief Find the array element with the Tag provided
+   * @param tag a tag to find the element for
+   * @return the element corresponding to Tag
+   */
+  [[nodiscard]] constexpr typename Base::const_reference find(std::string_view tag) const {
+    size_t index{0};
+    ([&index, &tag]<auto Type>() {
+      if (tag == Type) { return false; }
+      ++index;
+      return true;
+    }.template operator()<Tags>() &&
+     ...);
+    if (index >= sizeof...(Tags)) { throw std::out_of_range("Out of range"); }
+    return static_cast<const Base&>(*this)[index];
+  }
+
+  /**
    * @brief Get the array element at the Tag provided
    *
    * Note: Get is provided for parity with NamedTuple
@@ -135,7 +169,8 @@ struct TaggedArray : std::array<ValueType, sizeof...(Tags)> {
    * @param other a std::array to compare against
    * @return Returns true if all pairs of corresponding elements are equal; otherwise false
    */
-  [[nodiscard]] constexpr bool operator==(const std::array<ValueType, sizeof...(Tags)>& other) const {
+  [[nodiscard]] constexpr bool operator==(
+      const std::array<ValueType, sizeof...(Tags)>& other) const {
     return static_cast<const Base&>(*this) == other;
   }
 
@@ -143,9 +178,7 @@ struct TaggedArray : std::array<ValueType, sizeof...(Tags)> {
    * @brief Get tags as a tuple
    * @return A tuple of the tags
    */
-  [[nodiscard]] static constexpr auto tags() {
-    return std::tuple{Tags...};
-  }
+  [[nodiscard]] static constexpr auto tags() { return std::tuple{Tags...}; }
 };
 
 }  // namespace mguid
@@ -211,7 +244,8 @@ constexpr ValueType&& get(TaggedArray<ValueType, Tags...>&& arr) noexcept {
  */
 template <std::size_t Index, typename ValueType, StringLiteral... Tags>
 constexpr const ValueType&& get(const TaggedArray<ValueType, Tags...>&& arr) noexcept {
-  return std::move(std::get<Index>(static_cast<const std::array<ValueType, sizeof...(Tags)>&>(arr)));
+  return std::move(
+      std::get<Index>(static_cast<const std::array<ValueType, sizeof...(Tags)>&>(arr)));
 }
 
 /**
@@ -266,6 +300,6 @@ constexpr const ValueType&& get(const TaggedArray<ValueType, Tags...>&& arr) noe
   return std::move(arr.template at<Tag>());
 }
 
-} // namespace mguid
+}  // namespace mguid
 
 #endif  // NAMED_TAGGEDARRAY_HPP
