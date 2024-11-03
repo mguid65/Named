@@ -61,6 +61,27 @@ constexpr std::size_t index_in_pack() {
 }
 
 /**
+ * @brief Find the reverse index of a value in a pack of non-types
+ * @tparam Needle value to search for
+ * @tparam Haystack pack of non-types
+ * @return the index equivalent of the location of the type within the pack
+ */
+template <auto Needle, auto... Haystack>
+constexpr std::size_t reverse_index_in_pack() {
+  std::size_t index{0};
+  ([&index]<auto Type>() {
+    if constexpr (Needle == Type) {
+      return false;
+    } else {
+      ++index;
+      return true;
+    }
+  }.template operator()<Haystack>() && ...);
+  if (index >= sizeof...(Haystack)) { throw std::out_of_range("Value does not exist in pack"); }
+  return sizeof...(Haystack) - 1 - index;
+}
+
+/**
  * @brief Determine if all values within a pack of non-types are unique
  * @tparam Nttps pack of non-types
  * @return true if all values in the pack are unique; otherwise false
@@ -81,6 +102,11 @@ constexpr bool all_unique_nttps() {
     return std::all_of(std::begin(seen), std::end(seen), [](bool val) { return val; });
   }
 }
+
+template <auto Last, auto... Rest>
+struct ReversePackT {
+
+};
 
 }  // namespace mguid
 
