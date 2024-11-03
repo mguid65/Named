@@ -103,11 +103,6 @@ constexpr bool all_unique_nttps() {
   }
 }
 
-template <auto Last, auto... Rest>
-struct ReversePackT {
-
-};
-
 }  // namespace mguid
 
 #endif  // COMMON_HPP
