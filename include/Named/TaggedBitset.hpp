@@ -60,7 +60,7 @@ struct TaggedBitset : std::bitset<sizeof...(Tags)> {
   template <StringLiteral Tag>
     requires(sizeof...(Tags) > 0 && is_one_of<Tag, Tags...>())
   [[nodiscard]] bool test() const {
-    return static_cast<const Base&>(*this).test(index_in_pack<Tag, Tags...>());
+    return static_cast<const Base&>(*this).test(reverse_index_in_pack<Tag, Tags...>());
   }
 
   /**
@@ -72,7 +72,7 @@ struct TaggedBitset : std::bitset<sizeof...(Tags)> {
   template <StringLiteral Tag>
     requires(sizeof...(Tags) > 0 && is_one_of<Tag, Tags...>())
   TaggedBitset<Tags...>& set(bool value = true) {
-    static_cast<Base&>(*this).set(index_in_pack<Tag, Tags...>(), value);
+    static_cast<Base&>(*this).set(reverse_index_in_pack<Tag, Tags...>(), value);
     return *this;
   }
 
@@ -84,7 +84,7 @@ struct TaggedBitset : std::bitset<sizeof...(Tags)> {
   template <StringLiteral Tag>
     requires(sizeof...(Tags) > 0 && is_one_of<Tag, Tags...>())
   TaggedBitset<Tags...>& reset() {
-    static_cast<Base&>(*this).reset(index_in_pack<Tag, Tags...>());
+    static_cast<Base&>(*this).reset(reverse_index_in_pack<Tag, Tags...>());
     return *this;
   }
 
@@ -96,7 +96,7 @@ struct TaggedBitset : std::bitset<sizeof...(Tags)> {
   template <StringLiteral Tag>
     requires(sizeof...(Tags) > 0 && is_one_of<Tag, Tags...>())
   TaggedBitset<Tags...>& flip() {
-    static_cast<Base&>(*this).flip(index_in_pack<Tag, Tags...>());
+    static_cast<Base&>(*this).flip(reverse_index_in_pack<Tag, Tags...>());
     return *this;
   }
 
@@ -119,7 +119,6 @@ struct TaggedBitset : std::bitset<sizeof...(Tags)> {
 
   /**
    * @brief Comparison of the bits in this TaggedBitset with bits in a std::bitset
-   *
    * @tparam NSize size of other std::bitset
    * @param other a std::tuple to compare against
    * @return Returns true if all pairs of corresponding elements are equal; otherwise false
