@@ -105,16 +105,6 @@ struct StringLiteral {
     return std::string_view{value, size - 1};
   }
 
-  /**
-   * @brief Ostream insertion operator overload for StringLiteral
-   * @param os reference to some ostream
-   * @return reference to os
-   */
-  std::ostream& operator<<(std::ostream& os) {
-    os << view();
-    return os;
-  }
-
   char value[NSize];
   static constexpr size_t size{NSize};
 };
@@ -169,6 +159,17 @@ constexpr auto operator""_sl() {
 }
 
 }  // namespace literals
+
+/**
+ * @brief Ostream insertion operator overload for StringLiteral
+ * @param os reference to some ostream
+ * @param lit a StringLiteral
+ * @return reference to os
+ */
+template <size_t NSize>
+std::ostream& operator<<(std::ostream& os, const StringLiteral<NSize>& lit) {
+  return os << lit.view();
+}
 
 }  // namespace mguid
 

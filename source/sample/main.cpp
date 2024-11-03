@@ -1,6 +1,6 @@
 #include <Named/NamedTuple.hpp>
-#include <Named/TaggedBitset.hpp>
 #include <Named/TaggedArray.hpp>
+#include <Named/TaggedBitset.hpp>
 
 #include <iostream>
 
@@ -54,8 +54,22 @@ int main() {
   std::cout << tb.test<"third">() << '\n';
   std::cout << tb.size() << '\n';
 
-  mguid::TaggedArray<int,"first", "second", "third"> ta{1, 2, 3};
+  mguid::TaggedArray<int, "first", "second", "third"> ta{1, 2, 3};
   std::cout << ta.at<"first">() << '\n';
   std::cout << ta.at<"second">() << '\n';
   std::cout << ta.at<"third">() << '\n';
+
+  std::apply(
+      [](auto&&... args) {
+        std::cout << "(";
+        std::size_t count{1};
+        constexpr auto size = sizeof...(args);
+        ((std::cout << "\"" << args << "\"" << (count++ != size ? "," : "")), ...);
+        std::cout << ")" << '\n';
+      },
+      ta.tags());
+
+  const auto& first = ta.find("first");
+
+  std::cout << first << '\n';
 }
