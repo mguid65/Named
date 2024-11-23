@@ -93,7 +93,7 @@ struct StringLiteral {
    * @brief Convert this StringLiteral to a string_view
    * @return a string_view of the data in this StringLiteral
    */
-  [[nodiscard]] constexpr operator std::string_view() const {
+  [[nodiscard]] constexpr explicit operator std::string_view() const {
     return std::string_view{value, size - 1};
   }
 
