@@ -183,6 +183,7 @@ struct TaggedArray : std::array<ValueType, sizeof...(Tags)> {
 
 }  // namespace mguid
 
+// NOLINTBEGIN(cert-dcl58-cpp)
 template <typename ValueType, mguid::StringLiteral... Tags>
 struct std::tuple_size<mguid::TaggedArray<ValueType, Tags...>>
     : std::integral_constant<std::size_t, sizeof...(Tags)> {};
@@ -192,6 +193,7 @@ template <std::size_t Index, typename ValueType, mguid::StringLiteral... Tags>
 struct std::tuple_element<Index, mguid::TaggedArray<ValueType, Tags...>> {
   using type = ValueType;
 };
+// NOLINTEND(cert-dcl58-cpp)
 
 namespace mguid {
 
