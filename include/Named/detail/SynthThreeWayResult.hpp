@@ -33,6 +33,9 @@
 #ifndef NAMED_SYNTHTHREEWAYRESULT_HPP
 #define NAMED_SYNTHTHREEWAYRESULT_HPP
 
+#include <compare>
+#include <concepts>
+
 namespace mguid {
 
 /**
