@@ -65,6 +65,23 @@ struct NamedTuple : std::tuple<typename ExtractType<NamedTypes>::type...> {
       : Base{std::forward<InitTypes>(init_values)...} {}
 
   /**
+   * @brief Construct a NamedTuple, initializing values by tag
+   * @tparam InitTags Tags to initialize
+   * @tparam InitTypes Types of values to initialize
+   * @param named_type_vs Variadic pack of NamedTypeValueHelpers
+   */
+  template <StringLiteral... InitTags, typename... InitTypes>
+    requires(AllUniqueTags<InitTags...> && sizeof...(InitTags) == sizeof...(InitTypes) &&
+             sizeof...(InitTypes) != 0)
+  constexpr explicit NamedTuple(NamedTypeValueHelper<InitTags, InitTypes>&&... named_type_vs) {
+    (
+        [this]<typename NamedValueHelper>(NamedValueHelper&& value_helper) {
+          this->template get<NamedValueHelper::tag>() = value_helper.value;
+        }(std::forward<decltype(named_type_vs)>(named_type_vs)),
+        ...);
+  }
+
+  /**
    * @brief Get the number of elements this NamedTuple holds
    * @return the number of elements this NamedTuple holds
    */
@@ -91,9 +108,9 @@ struct NamedTuple : std::tuple<typename ExtractType<NamedTypes>::type...> {
    * @param value value to set
    */
   template <StringLiteral Tag, typename Value>
-    requires(
-        sizeof...(NamedTypes) > 0 && is_one_of<Tag, NamedTypes{}...>() &&
-        std::is_convertible_v<Value, std::tuple_element_t<index_in_pack<Tag, NamedTypes{}...>(), Base>>)
+    requires(sizeof...(NamedTypes) > 0 && is_one_of<Tag, NamedTypes{}...>() &&
+             std::is_convertible_v<
+                 Value, std::tuple_element_t<index_in_pack<Tag, NamedTypes{}...>(), Base>>)
   constexpr void set(Value&& value) {
     constexpr std::size_t Index = index_in_pack<Tag, NamedTypes{}...>();
     std::get<Index>(static_cast<Base&>(*this)) = std::forward<Value>(value);
@@ -209,7 +226,9 @@ struct NamedTuple : std::tuple<typename ExtractType<NamedTypes>::type...> {
   template <typename... OtherNamedTypes>
   [[nodiscard]] constexpr bool operator==(const NamedTuple<OtherNamedTypes...>& other) const {
     static_assert(sizeof...(NamedTypes) == sizeof...(OtherNamedTypes));
-    return ((this->template get<NamedTypes{}.tag()>() == other.template get<NamedTypes{}.tag()>()) && ...);
+    return (
+        (this->template get<NamedTypes{}.tag()>() == other.template get<NamedTypes{}.tag()>()) &&
+        ...);
   }
 
   /**
@@ -271,9 +290,7 @@ struct NamedTuple : std::tuple<typename ExtractType<NamedTypes>::type...> {
    * @brief Get the array of tags as a tuple
    * @return A tuple of the tags
    */
-  [[nodiscard]] static constexpr auto tags() {
-    return std::tuple{NamedTypes::tag()...};
-  }
+  [[nodiscard]] static constexpr auto tags() { return std::tuple{NamedTypes::tag()...}; }
 };
 }  // namespace mguid
 
@@ -318,7 +335,8 @@ template <typename... NamedTypeVs>
 }
 
 /**
- * @brief Constructs a NamedTuple of references to the arguments in args suitable for forwarding as an argument to a function.
+ * @brief Constructs a NamedTuple of references to the arguments in args suitable for forwarding as
+ * an argument to a function.
  * @tparam NamedTypeVs pack of zero or more named type value helpers
  * @param args zero or more arguments to construct the tuple from
  * @return A NamedTuple object containing the given values
@@ -345,10 +363,10 @@ template <typename Func, template <typename...> typename Tuple, typename... Name
 [[nodiscard]] constexpr decltype(auto) apply(Func&& func, Tuple<NamedTypes...>&& named_tuple) {
   return std::apply(
       [&]<typename... Args>(Args&&... args) {
-    return std::invoke(
-             std::forward<Func>(func),
-             std::pair(NamedTypes{}.tag(), std::forward<Args>(args))...);
-  }, named_tuple);
+        return std::invoke(std::forward<Func>(func),
+                           std::pair(NamedTypes{}.tag(), std::forward<Args>(args))...);
+      },
+      named_tuple);
 }
 
 /**
@@ -361,13 +379,14 @@ template <typename Func, template <typename...> typename Tuple, typename... Name
  * @return A NamedTuple object containing the given values
  */
 template <typename Func, template <typename...> typename Tuple, typename... NamedTypes>
-[[nodiscard]] constexpr decltype(auto) apply(Func&& func, const Tuple<NamedTypes...>&& named_tuple) {
+[[nodiscard]] constexpr decltype(auto) apply(Func&& func,
+                                             const Tuple<NamedTypes...>&& named_tuple) {
   return std::apply(
       [&]<typename... Args>(Args&&... args) {
-    return std::invoke(
-        std::forward<Func>(func),
-        std::pair(NamedTypes{}.tag(), std::forward<Args>(args))...);
-  }, named_tuple);
+        return std::invoke(std::forward<Func>(func),
+                           std::pair(NamedTypes{}.tag(), std::forward<Args>(args))...);
+      },
+      named_tuple);
 }
 
 /**
@@ -383,10 +402,10 @@ template <typename Func, template <typename...> typename Tuple, typename... Name
 [[nodiscard]] constexpr decltype(auto) apply(Func&& func, const Tuple<NamedTypes...>& named_tuple) {
   return std::apply(
       [&]<typename... Args>(Args&&... args) {
-    return std::invoke(
-        std::forward<Func>(func),
-        std::pair(NamedTypes{}.tag(), std::forward<Args>(args))...);
-  }, named_tuple);
+        return std::invoke(std::forward<Func>(func),
+                           std::pair(NamedTypes{}.tag(), std::forward<Args>(args))...);
+      },
+      named_tuple);
 }
 
 /**
@@ -402,27 +421,34 @@ template <typename Func, template <typename...> typename Tuple, typename... Name
 [[nodiscard]] constexpr decltype(auto) apply(Func&& func, Tuple<NamedTypes...>& named_tuple) {
   return std::apply(
       [&]<typename... Args>(Args&&... args) {
-    return std::invoke(
-        std::forward<Func>(func),
-        std::pair(NamedTypes{}.tag(), std::forward<Args>(args))...);
-  }, named_tuple);
+        return std::invoke(std::forward<Func>(func),
+                           std::pair(NamedTypes{}.tag(), std::forward<Args>(args))...);
+      },
+      named_tuple);
 }
 
 template <typename Tuple1, typename Tuple2>
 constexpr auto TupleCatHelper(Tuple1 t1, Tuple2 t2) {
-  return [&]<typename... TOuter>(mguid::NamedTuple<TOuter...>){
-    return [&]<typename... TInner>(mguid::NamedTuple<TInner...>){
-      return std::apply([&]<typename... ArgsOuter>(ArgsOuter&&... outer_args){
-          return std::apply([&]<typename... ArgsInner>(ArgsInner&&... inner_args){
-              return mguid::NamedTuple<TOuter..., TInner...>(std::forward<ArgsOuter>(outer_args)..., std::forward<ArgsInner>(inner_args)...);
-          }, static_cast<const typename std::remove_cvref_t<Tuple2>::Base&>(t2));
-      }, static_cast<const typename std::remove_cvref_t<Tuple1>::Base&>(t1));
+  return [&]<typename... TOuter>(mguid::NamedTuple<TOuter...>) {
+    return [&]<typename... TInner>(mguid::NamedTuple<TInner...>) {
+      return std::apply(
+          [&]<typename... ArgsOuter>(ArgsOuter&&... outer_args) {
+            return std::apply(
+                [&]<typename... ArgsInner>(ArgsInner&&... inner_args) {
+                  return mguid::NamedTuple<TOuter..., TInner...>(
+                      std::forward<ArgsOuter>(outer_args)...,
+                      std::forward<ArgsInner>(inner_args)...);
+                },
+                static_cast<const typename std::remove_cvref_t<Tuple2>::Base&>(t2));
+          },
+          static_cast<const typename std::remove_cvref_t<Tuple1>::Base&>(t1));
     }(t2);
   }(t1);
 }
 
-template<typename T1, typename T2>
-using TupleCat2T = decltype(TupleCatHelper(std::declval<std::remove_cvref_t<T1>>(), std::declval<std::remove_cvref_t<T2>>()));
+template <typename T1, typename T2>
+using TupleCat2T = decltype(TupleCatHelper(std::declval<std::remove_cvref_t<T1>>(),
+                                           std::declval<std::remove_cvref_t<T2>>()));
 
 template <typename FirstTuple, typename... Tuples>
 struct TupleCatResult {
@@ -452,9 +478,11 @@ constexpr TupleCatT<Tuples...> my_tuple_cat(Tuples&&... tuples) {
   if constexpr (sizeof...(Tuples) < 2) {
     return (tuples, ...);
   } else {
-    return std::apply([]<typename... Types>(Types&&... elements){
-        return TupleCatT<Tuples...>{std::forward<Types>(elements)...};
-    }, std::tuple_cat(static_cast<const typename std::remove_cvref_t<Tuples>::Base&>(tuples)...));
+    return std::apply(
+        []<typename... Types>(Types&&... elements) {
+          return TupleCatT<Tuples...>{std::forward<Types>(elements)...};
+        },
+        std::tuple_cat(static_cast<const typename std::remove_cvref_t<Tuples>::Base&>(tuples)...));
   }
 }
 
@@ -468,8 +496,9 @@ constexpr TupleCatT<Tuples...> my_tuple_cat(Tuples&&... tuples) {
  */
 template <StringLiteral Tag, typename... NamedTypes>
   requires(sizeof...(NamedTypes) > 0 && is_one_of<Tag, NamedTypes{}...>())
-[[nodiscard]] constexpr std::tuple_element_t<index_in_pack<Tag, NamedTypes{}...>(), NamedTuple<NamedTypes...>>&
-    get(NamedTuple<NamedTypes...>& nt) noexcept {
+[[nodiscard]] constexpr std::tuple_element_t<index_in_pack<Tag, NamedTypes{}...>(),
+                                             NamedTuple<NamedTypes...>>&
+get(NamedTuple<NamedTypes...>& nt) noexcept {
   return nt.template get<Tag>();
 }
 
@@ -484,7 +513,7 @@ template <StringLiteral Tag, typename... NamedTypes>
 template <StringLiteral Tag, typename... NamedTypes>
   requires(sizeof...(NamedTypes) > 0 && is_one_of<Tag, NamedTypes{}...>())
 [[nodiscard]] constexpr std::tuple_element_t<index_in_pack<Tag, NamedTypes{}...>(),
-                                                    NamedTuple<NamedTypes...>>&&
+                                             NamedTuple<NamedTypes...>>&&
 get(NamedTuple<NamedTypes...>&& nt) noexcept {
   return nt.template get<Tag>();
 }
@@ -500,7 +529,7 @@ get(NamedTuple<NamedTypes...>&& nt) noexcept {
 template <StringLiteral Tag, typename... NamedTypes>
   requires(sizeof...(NamedTypes) > 0 && is_one_of<Tag, NamedTypes{}...>())
 [[nodiscard]] constexpr const std::tuple_element_t<index_in_pack<Tag, NamedTypes{}...>(),
-                                                          NamedTuple<NamedTypes...>>&
+                                                   NamedTuple<NamedTypes...>>&
 get(const NamedTuple<NamedTypes...>& nt) noexcept {
   return nt.template get<Tag>();
 }
@@ -516,7 +545,7 @@ get(const NamedTuple<NamedTypes...>& nt) noexcept {
 template <StringLiteral Tag, typename... NamedTypes>
   requires(sizeof...(NamedTypes) > 0 && is_one_of<Tag, NamedTypes{}...>())
 [[nodiscard]] constexpr const std::tuple_element_t<index_in_pack<Tag, NamedTypes{}...>(),
-                                                          NamedTuple<NamedTypes...>>&&
+                                                   NamedTuple<NamedTypes...>>&&
 get(const NamedTuple<NamedTypes...>&& nt) noexcept {
   return nt.template get<Tag>();
 }
