@@ -72,6 +72,66 @@ TEST_CASE("NamedTuple Constructor") {
     REQUIRE(std::is_same_v<std::remove_cvref_t<decltype(nt.get<"double">())>, double>);
     REQUIRE(std::is_same_v<std::remove_cvref_t<decltype(nt.get<"string">())>, std::string>);
   }
+  SECTION("Tagged Single Type") {
+    [[maybe_unused]] mguid::NamedTuple<mguid::NamedType<"key", int>> nt{};
+    REQUIRE(std::tuple_size_v<decltype(nt)> == std::size_t{1});
+    REQUIRE(std::same_as<std::tuple_element_t<0, decltype(nt)>, int>);
+  }
+  SECTION("Tagged Single Type UDL") {
+    using namespace mguid::literals;
+    [[maybe_unused]] mguid::NamedTuple<mguid::NamedType<"key", int>> nt("key"_nt = 5);
+    REQUIRE(std::tuple_size_v<decltype(nt)> == std::size_t{1});
+    REQUIRE(std::same_as<std::tuple_element_t<0, decltype(nt)>, int>);
+    REQUIRE(nt.get<"key">() == 5);
+    // Deduce types from tags
+    [[maybe_unused]] auto nt2 = mguid::NamedTuple{"key"_nt = 5};
+    REQUIRE(std::tuple_size_v<decltype(nt2)> == std::size_t{1});
+    REQUIRE(std::same_as<std::tuple_element_t<0, decltype(nt2)>, int>);
+    REQUIRE(nt2.get<"key">() == 5);
+  }
+
+  SECTION("Tagged Multiple Types") {
+    [[maybe_unused]] mguid::NamedTuple<mguid::NamedType<"key1", int>, mguid::NamedType<"key2", char>> nt{};
+    REQUIRE(std::tuple_size_v<decltype(nt)> == std::size_t{2});
+    STATIC_REQUIRE(std::same_as<std::tuple_element_t<0, decltype(nt)>, int>);
+    STATIC_REQUIRE(std::same_as<std::tuple_element_t<1, decltype(nt)>, char>);
+  }
+  SECTION("Tagged Multiple Types UDL") {
+    using namespace mguid::literals;
+    // In order
+    {
+      [[maybe_unused]] mguid::NamedTuple<mguid::NamedType<"key1", int>, mguid::NamedType<"key2", char>> nt("key1"_nt = 5, "key2"_nt = 'c');
+      REQUIRE(std::tuple_size_v<decltype(nt)> == std::size_t{2});
+      STATIC_REQUIRE(std::same_as<std::tuple_element_t<0, decltype(nt)>, int>);
+      STATIC_REQUIRE(std::same_as<std::tuple_element_t<1, decltype(nt)>, char>);
+      REQUIRE(nt.get<"key1">() == 5);
+      REQUIRE(nt.get<"key2">() == 'c');
+      // Deduce types from tags
+      [[maybe_unused]] auto nt2 = mguid::NamedTuple{"key1"_nt = 5, "key2"_nt = 'c'};
+      REQUIRE(std::tuple_size_v<decltype(nt2)> == std::size_t{2});
+      STATIC_REQUIRE(std::same_as<std::tuple_element_t<0, decltype(nt2)>, int>);
+      STATIC_REQUIRE(std::same_as<std::tuple_element_t<1, decltype(nt2)>, char>);
+      REQUIRE(nt2.get<"key1">() == 5);
+      REQUIRE(nt2.get<"key2">() == 'c');
+    }
+
+    // Out of order
+    {
+      [[maybe_unused]] mguid::NamedTuple<mguid::NamedType<"key1", int>, mguid::NamedType<"key2", char>> nt("key2"_nt = 'c', "key1"_nt = 5);
+      REQUIRE(std::tuple_size_v<decltype(nt)> == std::size_t{2});
+      STATIC_REQUIRE(std::same_as<std::tuple_element_t<0, decltype(nt)>, int>);
+      STATIC_REQUIRE(std::same_as<std::tuple_element_t<1, decltype(nt)>, char>);
+      REQUIRE(nt.get<"key1">() == 5);
+      REQUIRE(nt.get<"key2">() == 'c');
+      // Deduce types from tags
+      [[maybe_unused]] auto nt2 = mguid::NamedTuple{"key2"_nt = 'c', "key1"_nt = 5};
+      REQUIRE(std::tuple_size_v<decltype(nt2)> == std::size_t{2});
+      STATIC_REQUIRE(std::same_as<std::tuple_element_t<0, decltype(nt2)>, char>);
+      STATIC_REQUIRE(std::same_as<std::tuple_element_t<1, decltype(nt2)>, int>);
+      REQUIRE(nt2.get<"key1">() == 5);
+      REQUIRE(nt2.get<"key2">() == 'c');
+    }
+  }
 }
 
 TEST_CASE("NamedTuple Setter") {
