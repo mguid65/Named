@@ -87,7 +87,7 @@ constexpr std::size_t reverse_index_in_pack() {
  * @return true if all values in the pack are unique; otherwise false
  */
 template <auto... Nttps>
-constexpr bool all_unique_nttps() {
+consteval bool all_unique_nttps() {
   if constexpr (sizeof...(Nttps) == 0) {
     return true;
   } else {

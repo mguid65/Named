@@ -1,15 +1,20 @@
-set(UNIT_TEST_SRC
-    unit_test_named_tuple.cpp
-    unit_test_tagged_bitset.cpp
-    unit_test_tagged_array.cpp
-)
+find_package(Catch2 COMPONENTS Catch2WithMain)
 
-add_executable(unit_tests)
-target_sources(unit_tests PRIVATE ${UNIT_TEST_SRC})
-target_link_libraries(unit_tests PRIVATE named Catch2::Catch2WithMain)
+if (Catch2_FOUND)
+    set(UNIT_TEST_SRC
+        unit_test_named_tuple.cpp
+        unit_test_tagged_bitset.cpp
+        unit_test_tagged_array.cpp
+    )
 
-enable_testing()
+    add_executable(unit_tests)
+    target_sources(unit_tests PRIVATE ${UNIT_TEST_SRC})
+    target_link_libraries(unit_tests PRIVATE named Catch2::Catch2 Catch2::Catch2WithMain)
 
-add_test(NAME unit_tests
-        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        COMMAND unit_tests)
+    enable_testing()
+
+    add_test(NAME unit_tests
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            COMMAND unit_tests)
+endif ()
+

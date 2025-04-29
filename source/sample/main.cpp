@@ -31,24 +31,28 @@ int main() {
   std::cout << vec3.get<"z">() << std::endl;
 
   int i = 5;
-  std::reference_wrapper<int> i_ref{i};
+  const std::reference_wrapper<int> i_ref{i};
   const auto nt = mguid::make_tuple(NamedTypeV<"int_key">(i_ref), NamedTypeV<"float_key">(1.0f),
                                     NamedTypeV<"char_key">('c'));
 
   mguid::apply(
       [](const auto&&... args) {
-        std::cout << "(";
+        std::cout << "{";
         std::size_t count{1};
-        ((std::cout << "{" << args.first.view() << ":" << args.second
-                    << ((count++ != sizeof...(args)) ? "}," : "}")),
+        ((std::cout << args.first.view() << ":" << args.second
+                    << ((count++ != sizeof...(args)) ? "," : "")),
          ...);
-        std::cout << ")";
+        std::cout << "}\n";
       },
       nt);
 
   std::cout << nt.get<"int_key">() << '\n';
   std::cout << nt.get<"float_key">() << '\n';
   std::cout << nt.get<"char_key">() << '\n';
+
+  std::cout << nt.get<0>() << '\n';
+  std::cout << nt.get<1>() << '\n';
+  std::cout << nt.get<2>() << '\n';
 
   std::cout << mguid::get<"int_key">(nt) << '\n';
   std::cout << mguid::get<"float_key">(nt) << '\n';
