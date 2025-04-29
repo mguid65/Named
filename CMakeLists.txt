@@ -28,13 +28,13 @@ set(NAMED_HEADERS
         include/Named/NamedTuple.hpp
         include/Named/TaggedArray.hpp
         include/Named/TaggedBitset.hpp
+        include/Named/detail/Common.hpp
         include/Named/detail/NamedTupleUtil.hpp
         include/Named/detail/StringLiteral.hpp
         include/Named/detail/SynthThreeWayResult.hpp
 )
 
-add_library(named INTERFACE
-        include/Named/detail/Common.hpp)
+add_library(named INTERFACE)
 target_include_directories(named INTERFACE include)
 target_sources(named INTERFACE ${NAMED_HEADERS})
 set_target_properties(named PROPERTIES LINKER_LANGUAGE CXX)
@@ -58,9 +58,5 @@ if (NAMED_BUILD_TESTS)
                 COMMAND sample)
     endif ()
 
-    find_package(Catch2 COMPONENTS Catch2WithMain)
-
-    if (Catch2_FOUND)
-        add_subdirectory(test)
-    endif ()
+    add_subdirectory(test)
 endif ()
