@@ -111,8 +111,6 @@ struct NamedTypeValueHelper {
   std::unwrap_ref_decay_t<ValueType> value{};
 };
 
-
-
 template <typename>
 struct IsNamedTypeValueHelperImpl : std::false_type {};
 
@@ -159,6 +157,16 @@ struct NamedTypeValueUDLHelper {
 
 template <StringLiteral Tag>
 constexpr NamedTypeValueUDLHelper<Tag> operator""_nt() {
+  return NamedTypeValueUDLHelper<Tag>{};
+}
+
+template <StringLiteral Tag>
+constexpr NamedTypeValueUDLHelper<Tag> operator""_tag() {
+  return NamedTypeValueUDLHelper<Tag>{};
+}
+
+template <StringLiteral Tag>
+constexpr NamedTypeValueUDLHelper<Tag> operator""_name() {
   return NamedTypeValueUDLHelper<Tag>{};
 }
 }  // namespace literals

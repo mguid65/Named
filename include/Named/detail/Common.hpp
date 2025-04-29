@@ -76,7 +76,8 @@ constexpr std::size_t reverse_index_in_pack() {
       ++index;
       return true;
     }
-  }.template operator()<Haystack>() && ...);
+  }.template operator()<Haystack>() &&
+   ...);
   if (index >= sizeof...(Haystack)) { throw std::out_of_range("Value does not exist in pack"); }
   return sizeof...(Haystack) - 1 - index;
 }
@@ -93,11 +94,7 @@ consteval bool all_unique_nttps() {
   } else {
     bool seen[sizeof...(Nttps)] = {false};
 
-    (
-        [&seen]<auto Value>() {
-          seen[index_in_pack<Value, Nttps...>()] = true;
-        }.template operator()<Nttps>(),
-        ...);
+    ([&seen]<auto Value>() { seen[index_in_pack<Value, Nttps...>()] = true; }.template operator()<Nttps>(), ...);
 
     return std::all_of(std::begin(seen), std::end(seen), [](bool val) { return val; });
   }
