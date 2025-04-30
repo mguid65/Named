@@ -217,7 +217,7 @@ TEST_CASE("NamedTuple Getter") {
   }
 }
 
-TEST_CASE("Comparison") {
+TEST_CASE("NamedTuple Comparison") {
   SECTION("Empty Equality") {
     mguid::NamedTuple<> nt1;
     mguid::NamedTuple<> nt2;
@@ -435,7 +435,7 @@ TEST_CASE("Comparison") {
   }
 }
 
-TEST_CASE("Specialization of std::tuple_element") {
+TEST_CASE("NamedTuple Specialization of std::tuple_element") {
   SECTION("Single Element") {
     REQUIRE(
         std::is_same_v<std::tuple_element_t<0, mguid::NamedTuple<mguid::NamedType<"test", float>>>,
@@ -463,7 +463,7 @@ TEST_CASE("Specialization of std::tuple_element") {
   }
 }
 
-TEST_CASE("Specialization of std::tuple_size") {
+TEST_CASE("NamedTuple Specialization of std::tuple_size") {
   SECTION("Empty") { REQUIRE(std::tuple_size_v<mguid::NamedTuple<>> == 0); }
   SECTION("Single Element") {
     REQUIRE(std::tuple_size_v<mguid::NamedTuple<mguid::NamedType<"test", int>>> == 1);
@@ -475,7 +475,7 @@ TEST_CASE("Specialization of std::tuple_size") {
   }
 }
 
-TEST_CASE("Forward As Tuple") {
+TEST_CASE("NamedTuple Forward As Tuple") {
   int i{1};
   int j{2};
   int k{3};
@@ -496,7 +496,7 @@ TEST_CASE("Forward As Tuple") {
                             mguid::NamedTypeV<"third">(k)));
 }
 
-TEST_CASE("Make Tuple") {
+TEST_CASE("NamedTuple Make Tuple") {
   int i{1};
   int j{2};
   int k{3};
@@ -524,7 +524,7 @@ TEST_CASE("Make Tuple") {
                       mguid::NamedTypeV<"third">(k)));
 }
 
-TEST_CASE("Apply") {
+TEST_CASE("NamedTuple Apply") {
   SECTION("Empty Apply") {
     mguid::NamedTuple<> nt;
     const mguid::NamedTuple<> const_nt;
@@ -586,4 +586,10 @@ TEST_CASE("Apply") {
         },
         const_nt);
   }
+}
+
+TEST_CASE("NamedTuple Trait") {
+  STATIC_REQUIRE(mguid::IsNamedTuple<mguid::NamedTuple<>>);
+  STATIC_REQUIRE(mguid::IsNamedTuple<mguid::NamedTuple<mguid::NamedType<"key", int>>>);
+  STATIC_REQUIRE_FALSE(mguid::IsNamedTuple<int>);
 }

@@ -11,16 +11,12 @@ using mguid::NamedTypeV;
 int main() {
   using namespace mguid::literals;
 
-  [[maybe_unused]] auto nt10 = NamedTuple{"key"_nt = 5};
-
-  std::cout << nt10.get<"key">() << '\n';
-
   using Vec3i = NamedTuple<NamedType<"x", int>, NamedType<"y", int>, NamedType<"z", int>>;
 
   Vec3i vec1{NamedTypeV<"x">(11), NamedTypeV<"z">(13), NamedTypeV<"y">(12)};
   Vec3i vec2{1, 2, 3};
 
-  Vec3i vec3{"x"_nt = 4, "y"_nt = 5, "z"_nt = 6};
+  Vec3i vec3{"x"_tag = 4, "y"_tag = 5, "z"_tag = 6};
 
   std::cout << vec1.get<"x">() << std::endl;
   std::cout << vec1.get<"y">() << std::endl;
@@ -36,19 +32,28 @@ int main() {
 
   int i = 5;
   const std::reference_wrapper<int> i_ref{i};
-  const auto nt = mguid::make_tuple(NamedTypeV<"int_key">(i_ref), NamedTypeV<"float_key">(1.0f),
-                                    NamedTypeV<"char_key">('c'));
+  const auto nt =
+      mguid::make_tuple(NamedTypeV<"int_key">(i_ref), NamedTypeV<"float_key">(1.0f), NamedTypeV<"char_key">('c'));
 
-  mguid::apply(
-      [](const auto&&... args) {
-        std::cout << "{";
-        std::size_t count{1};
-        ((std::cout << args.first.view() << ":" << args.second
-                    << ((count++ != sizeof...(args)) ? "," : "")),
-         ...);
-        std::cout << "}\n";
-      },
-      nt);
+  const auto nt2 = mguid::make_tuple("int_key"_nt = i_ref, "float_key"_nt = 42.0f, "char_key"_nt = 'm');
+
+  auto print_named_tuple = [](const auto& tup) {
+    mguid::apply(
+        [](const auto&&... args) {
+          std::cout << "{";
+          std::size_t count{1};
+          ((std::cout << args.first.view() << ":" << args.second << ((count++ != sizeof...(args)) ? "," : "")), ...);
+          std::cout << "}\n";
+        },
+        tup);
+  };
+
+  print_named_tuple(nt);
+
+  print_named_tuple(nt2);
+
+  const auto nt_deduced = NamedTuple{"a"_name = 'a', "b"_name = "b", "c"_name = 2};
+  print_named_tuple(nt_deduced);
 
   std::cout << nt.get<"int_key">() << '\n';
   std::cout << nt.get<"float_key">() << '\n';

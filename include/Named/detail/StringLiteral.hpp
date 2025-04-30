@@ -30,8 +30,8 @@
  * @endcond
  */
 
-#ifndef NAMED_STRINGLITERAL_HPP
-#define NAMED_STRINGLITERAL_HPP
+#ifndef MGUID_NAMED_STRINGLITERAL_HPP
+#define MGUID_NAMED_STRINGLITERAL_HPP
 
 #include <algorithm>
 #include <string_view>
@@ -51,9 +51,7 @@ struct StringLiteral {
    * @brief Construct a StringLiteral from a string literal
    * @param str a string literal as a const reference to a sized char array
    */
-  constexpr explicit(false) StringLiteral(char const (&str)[NSize]) : value{'\0'} {
-    std::copy_n(str, NSize, value);
-  }
+  constexpr explicit(false) StringLiteral(char const (&str)[NSize]) : value{'\0'} { std::copy_n(str, NSize, value); }
   // NOLINTEND(google-explicit-constructor)
 
   /**
@@ -93,17 +91,13 @@ struct StringLiteral {
    * @brief Convert this StringLiteral to a string_view
    * @return a string_view of the data in this StringLiteral
    */
-  [[nodiscard]] constexpr explicit operator std::string_view() const {
-    return std::string_view{value, size - 1};
-  }
+  [[nodiscard]] constexpr explicit operator std::string_view() const { return std::string_view{value, size - 1}; }
 
   /**
    * @brief Convert this StringLiteral to a string_view
    * @return a string_view of the data in this StringLiteral
    */
-  [[nodiscard]] constexpr std::string_view view() const {
-    return std::string_view{value, size - 1};
-  }
+  [[nodiscard]] constexpr std::string_view view() const { return std::string_view{value, size - 1}; }
 
   char value[NSize];
   static constexpr size_t size{NSize};
@@ -173,4 +167,4 @@ std::ostream& operator<<(std::ostream& os, const StringLiteral<NSize>& lit) {
 
 }  // namespace mguid
 
-#endif  // NAMED_STRINGLITERAL_HPP
+#endif  // MGUID_NAMED_STRINGLITERAL_HPP
