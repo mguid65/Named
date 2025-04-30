@@ -101,7 +101,7 @@ struct NamedTuple : std::tuple<typename ExtractType<NamedTypes>::type...> {
 
   /**
    * @brief Extracts the element of the NamedTuple whose name is Tag
-   * @tparam Tag a StringLiteral to search for
+   * @tparam Tag Name of the element in the NamedTuple to get
    * @return the element of the NamedTuple whose name is Tag
    */
   template <StringLiteral Tag>
@@ -113,7 +113,7 @@ struct NamedTuple : std::tuple<typename ExtractType<NamedTypes>::type...> {
 
   /**
    * @brief Extracts the element of the NamedTuple whose name is Tag
-   * @tparam Tag a StringLiteral to search for
+   * @tparam Tag Name of the element in the NamedTuple to get
    * @return the element of the NamedTuple whose name is Tag
    */
   template <StringLiteral Tag>
@@ -125,7 +125,7 @@ struct NamedTuple : std::tuple<typename ExtractType<NamedTypes>::type...> {
 
   /**
    * @brief Extracts the element of the NamedTuple whose name is Tag
-   * @tparam Tag a StringLiteral to search for
+   * @tparam Tag Name of the element in the NamedTuple to get
    * @return the element of the NamedTuple whose name is Tag
    */
   template <StringLiteral Tag>
@@ -137,7 +137,7 @@ struct NamedTuple : std::tuple<typename ExtractType<NamedTypes>::type...> {
 
   /**
    * @brief Extracts the element of the NamedTuple whose name is Tag
-   * @tparam Tag a StringLiteral to search for
+   * @tparam Tag Name of the element in the NamedTuple to get
    * @return the element of the NamedTuple whose name is Tag
    */
   template <StringLiteral Tag>
