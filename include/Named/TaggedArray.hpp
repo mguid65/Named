@@ -30,8 +30,8 @@
  * @endcond
  */
 
-#ifndef NAMED_TAGGEDARRAY_HPP
-#define NAMED_TAGGEDARRAY_HPP
+#ifndef MGUID_NAMED_TAGGEDARRAY_HPP
+#define MGUID_NAMED_TAGGEDARRAY_HPP
 
 #include <array>
 #include <tuple>
@@ -58,8 +58,7 @@ struct TaggedArray : std::array<ValueType, sizeof...(Tags)> {
    * @param vals variadic list of values
    */
   template <typename... ValueTypes>
-  constexpr explicit(false) TaggedArray(ValueTypes&&... vals)
-      : Base{std::forward<ValueTypes>(vals)...} {}
+  constexpr explicit(false) TaggedArray(ValueTypes&&... vals) : Base{std::forward<ValueTypes>(vals)...} {}
 
   /**
    * @brief Get the array element at the Tag provided
@@ -169,8 +168,7 @@ struct TaggedArray : std::array<ValueType, sizeof...(Tags)> {
    * @param other a std::array to compare against
    * @return Returns true if all pairs of corresponding elements are equal; otherwise false
    */
-  [[nodiscard]] constexpr bool operator==(
-      const std::array<ValueType, sizeof...(Tags)>& other) const {
+  [[nodiscard]] constexpr bool operator==(const std::array<ValueType, sizeof...(Tags)>& other) const {
     return static_cast<const Base&>(*this) == other;
   }
 
@@ -185,8 +183,8 @@ struct TaggedArray : std::array<ValueType, sizeof...(Tags)> {
 
 // NOLINTBEGIN(cert-dcl58-cpp)
 template <typename ValueType, mguid::StringLiteral... Tags>
-struct std::tuple_size<mguid::TaggedArray<ValueType, Tags...>>
-    : std::integral_constant<std::size_t, sizeof...(Tags)> {};
+struct std::tuple_size<mguid::TaggedArray<ValueType, Tags...>> : std::integral_constant<std::size_t, sizeof...(Tags)> {
+};
 
 // Specialization of std::tuple_element for TaggedArray
 template <std::size_t Index, typename ValueType, mguid::StringLiteral... Tags>
@@ -246,8 +244,7 @@ constexpr ValueType&& get(TaggedArray<ValueType, Tags...>&& arr) noexcept {
  */
 template <std::size_t Index, typename ValueType, StringLiteral... Tags>
 constexpr const ValueType&& get(const TaggedArray<ValueType, Tags...>&& arr) noexcept {
-  return std::move(
-      std::get<Index>(static_cast<const std::array<ValueType, sizeof...(Tags)>&>(arr)));
+  return std::move(std::get<Index>(static_cast<const std::array<ValueType, sizeof...(Tags)>&>(arr)));
 }
 
 /**
@@ -304,4 +301,4 @@ constexpr const ValueType&& get(const TaggedArray<ValueType, Tags...>&& arr) noe
 
 }  // namespace mguid
 
-#endif  // NAMED_TAGGEDARRAY_HPP
+#endif  // MGUID_NAMED_TAGGEDARRAY_HPP
