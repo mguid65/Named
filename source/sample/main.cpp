@@ -11,6 +11,10 @@ using mguid::NamedTypeV;
 int main() {
   using namespace mguid::literals;
 
+  [[maybe_unused]] auto nt10 = NamedTuple{"key"_nt = 5};
+
+  std::cout << nt10.get<"key">() << '\n';
+
   using Vec3i = NamedTuple<NamedType<"x", int>, NamedType<"y", int>, NamedType<"z", int>>;
 
   Vec3i vec1{NamedTypeV<"x">(11), NamedTypeV<"z">(13), NamedTypeV<"y">(12)};

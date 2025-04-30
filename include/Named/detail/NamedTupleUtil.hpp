@@ -39,8 +39,8 @@
 #include <string_view>
 #include <type_traits>
 
-#include "Named/detail/StringLiteral.hpp"
 #include "Named/detail/Common.hpp"
+#include "Named/detail/StringLiteral.hpp"
 
 namespace mguid {
 
@@ -111,6 +111,17 @@ struct NamedTypeValueHelper {
   std::unwrap_ref_decay_t<ValueType> value{};
 };
 
+
+
+template <typename>
+struct IsNamedTypeValueHelperImpl : std::false_type {};
+
+template <StringLiteral Tag, typename ValueType>
+struct IsNamedTypeValueHelperImpl<NamedTypeValueHelper<Tag, ValueType>> : std::true_type {};
+
+template <typename T>
+concept IsNamedTypeValueHelper = IsNamedTypeValueHelperImpl<T>::value;
+
 /**
  * @brief A helper to associate a value with a named type for use in make_tuple
  * @tparam Tag StringLiteral element name
@@ -122,6 +133,19 @@ template <StringLiteral Tag, typename ValueType>
 constexpr NamedTypeValueHelper<Tag, ValueType> NamedTypeV(ValueType value) {
   return NamedTypeValueHelper<Tag, ValueType>{value};
 }
+
+// Deduce the tag and type from a helper
+template <typename Helper>
+struct NamedTypeFromHelper;
+
+template <StringLiteral Tag, typename T>
+struct NamedTypeFromHelper<NamedTypeValueHelper<Tag, T>> {
+  using type = NamedType<Tag, std::unwrap_ref_decay_t<T>>;
+};
+
+// Convenience alias
+template <typename Helper>
+using NamedTypeFromHelperT = typename NamedTypeFromHelper<std::remove_cvref_t<Helper>>::type;
 
 namespace literals {
 
@@ -137,7 +161,7 @@ template <StringLiteral Tag>
 constexpr NamedTypeValueUDLHelper<Tag> operator""_nt() {
   return NamedTypeValueUDLHelper<Tag>{};
 }
-}
+}  // namespace literals
 
 /**
  * @brief Base template of helper template to extract the type from a NamedType
@@ -174,6 +198,6 @@ constexpr bool is_one_of() {
   return (... || (Key == NamedTypes));
 }
 
-} // namespace mguid
+}  // namespace mguid
 
-#endif // NAMED_NAMEDTUPLEUTIL_HPP
+#endif  // NAMED_NAMEDTUPLEUTIL_HPP

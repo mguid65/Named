@@ -61,25 +61,31 @@ struct NamedTuple : std::tuple<typename ExtractType<NamedTypes>::type...> {
    * @param init_values values to initialize each tuple element
    */
   template <typename... InitTypes>
+    requires(!IsNamedTypeValueHelper<InitTypes> && ...)
   constexpr explicit NamedTuple(InitTypes&&... init_values)
       : Base{std::forward<InitTypes>(init_values)...} {}
 
-  /**
-   * @brief Construct a NamedTuple, initializing values by tag
-   * @tparam InitTags Tags to initialize
-   * @tparam InitTypes Types of values to initialize
-   * @param named_type_vs Variadic pack of NamedTypeValueHelpers
-   */
-  template <StringLiteral... InitTags, typename... InitTypes>
-    requires(AllUniqueTags<InitTags...> && sizeof...(InitTags) == sizeof...(InitTypes) &&
-             sizeof...(InitTypes) != 0)
-  constexpr explicit NamedTuple(NamedTypeValueHelper<InitTags, InitTypes>&&... named_type_vs) {
-    (
-        [this]<typename NamedValueHelper>(NamedValueHelper&& value_helper) {
-          this->template get<NamedValueHelper::tag>() = value_helper.value;
-        }(std::forward<decltype(named_type_vs)>(named_type_vs)),
-        ...);
+  template <typename... Helpers>
+    requires ((sizeof...(Helpers) > 0u) && (IsNamedTypeValueHelper<Helpers> && ...))
+  constexpr explicit NamedTuple(Helpers&&... helpers) {
+    ([this]<typename NamedValueHelper>(NamedValueHelper&& value_helper) {
+      this->template get<NamedValueHelper::tag>() = value_helper.value;
+    }(std::forward<decltype(helpers)>(helpers)),
+    ...);
   }
+
+  // /**
+  //  * @brief Construct a NamedTuple, initializing values by tag
+  //  * @tparam InitTags Tags to initialize
+  //  * @tparam InitTypes Types of values to initialize
+  //  * @param named_type_vs Variadic pack of NamedTypeValueHelpers
+  //  */
+  // template <StringLiteral... InitTags, typename... InitTypes>
+  //   requires(AllUniqueTags<InitTags...> && sizeof...(InitTags) == sizeof...(InitTypes) &&
+  //            sizeof...(InitTypes) != 0)
+  // constexpr NamedTuple(NamedTypeValueHelper<InitTags, InitTypes>&&... named_type_vs) {
+  //   (
+  // }
 
   /**
    * @brief Get the number of elements this NamedTuple holds
@@ -292,6 +298,10 @@ struct NamedTuple : std::tuple<typename ExtractType<NamedTypes>::type...> {
    */
   [[nodiscard]] static constexpr auto tags() { return std::tuple{NamedTypes::tag()...}; }
 };
+
+template <typename... Helpers>
+  requires(IsNamedTypeValueHelper<Helpers> && ...)
+explicit NamedTuple(Helpers&&... helpers) -> NamedTuple<NamedTypeFromHelperT<Helpers>...>;
 }  // namespace mguid
 
 // NOLINTBEGIN(cert-dcl58-cpp)
