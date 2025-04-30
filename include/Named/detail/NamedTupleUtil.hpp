@@ -107,6 +107,7 @@ template <StringLiteral Tag, typename ValueType>
 struct NamedTypeValueHelper {
   using DecayT = NamedType<Tag, std::unwrap_ref_decay_t<ValueType>>;
   using TypeRRef = NamedType<Tag, ValueType&&>;
+  static constexpr auto tag = Tag;
   std::unwrap_ref_decay_t<ValueType> value{};
 };
 
@@ -120,6 +121,22 @@ struct NamedTypeValueHelper {
 template <StringLiteral Tag, typename ValueType>
 constexpr NamedTypeValueHelper<Tag, ValueType> NamedTypeV(ValueType value) {
   return NamedTypeValueHelper<Tag, ValueType>{value};
+}
+
+namespace literals {
+
+template <StringLiteral Tag>
+struct NamedTypeValueUDLHelper {
+  template <typename ValueType>
+  constexpr NamedTypeValueHelper<Tag, ValueType> operator=(ValueType value) const {
+    return NamedTypeValueHelper<Tag, ValueType>{value};
+  }
+};
+
+template <StringLiteral Tag>
+constexpr NamedTypeValueUDLHelper<Tag> operator""_nt() {
+  return NamedTypeValueUDLHelper<Tag>{};
+}
 }
 
 /**

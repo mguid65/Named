@@ -9,6 +9,27 @@ using mguid::NamedType;
 using mguid::NamedTypeV;
 
 int main() {
+  using namespace mguid::literals;
+
+  using Vec3i = NamedTuple<NamedType<"x", int>, NamedType<"y", int>, NamedType<"z", int>>;
+
+  Vec3i vec1{NamedTypeV<"x">(11), NamedTypeV<"z">(13), NamedTypeV<"y">(12)};
+  Vec3i vec2{1, 2, 3};
+
+  Vec3i vec3{"x"_nt = 4, "y"_nt = 5, "z"_nt = 6};
+
+  std::cout << vec1.get<"x">() << std::endl;
+  std::cout << vec1.get<"y">() << std::endl;
+  std::cout << vec1.get<"z">() << std::endl;
+
+  std::cout << vec2.get<"x">() << std::endl;
+  std::cout << vec2.get<"y">() << std::endl;
+  std::cout << vec2.get<"z">() << std::endl;
+
+  std::cout << vec3.get<"x">() << std::endl;
+  std::cout << vec3.get<"y">() << std::endl;
+  std::cout << vec3.get<"z">() << std::endl;
+
   int i = 5;
   std::reference_wrapper<int> i_ref{i};
   const auto nt = mguid::make_tuple(NamedTypeV<"int_key">(i_ref), NamedTypeV<"float_key">(1.0f),
