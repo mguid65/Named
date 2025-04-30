@@ -33,6 +33,7 @@
 #ifndef NAMED_NAMEDTUPLEUTIL_HPP
 #define NAMED_NAMEDTUPLEUTIL_HPP
 
+#include "Named/NamedTuple.hpp"
 #include <algorithm>
 #include <cstdint>
 #include <functional>
@@ -196,6 +197,22 @@ template <typename... NamedTypes>
 concept AllUniqueNamedTypes = all_unique_nttps<NamedTypes{}...>();
 
 /**
+ * @brief Extract the NamedTypes from a NamedTuple<Ts...>
+ */
+template <typename>
+struct NamedTypesFromTuple;
+
+/**
+ * @brief Extract the NamedTypes from a NamedTuple<Ts...>
+ * @tparam TupleT A tuple type to extract NamedTypes from
+ * @tparam NamedTypes The list of NamedTypes in the NamedTuple
+ */
+template <template <typename...> typename TupleT, typename... NamedTypes>
+struct NamedTypesFromTuple<TupleT<NamedTypes...>> {
+  using type = std::tuple<NamedTypes...>;
+};
+
+/**
  * @brief Check if Key is one of the tags of a NamedType within the NamedTypes pack
  * @tparam Key key to search for
  * @tparam NamedTypes pack of NamedType to search in
@@ -205,6 +222,57 @@ template <StringLiteral Key, NamedType... NamedTypes>
 constexpr bool is_one_of() {
   return (... || (Key == NamedTypes));
 }
+
+// || member_name_diagnosis<TupleType<decltype(NamedTypes)...>, Key>
+template <typename... LhsNamedTypes>
+struct NamedTypesEqualityComparable {
+  template <typename... RhsNamedTypes>
+  static consteval bool with() {
+    if constexpr (sizeof...(LhsNamedTypes) != sizeof...(RhsNamedTypes)) {
+      return false;
+    } else {
+      return ([]<typename LhsNamed>() {
+        if constexpr (constexpr auto Tag = LhsNamed{}.tag(); !mguid::is_one_of<Tag, RhsNamedTypes{}...>()) {
+          return false;
+        } else {
+          constexpr std::size_t RhsIndex = mguid::index_in_pack<Tag, RhsNamedTypes{}...>();
+          using RhsNamed = std::tuple_element_t<RhsIndex, std::tuple<RhsNamedTypes...>>;
+
+          using LhsT = typename mguid::ExtractType<LhsNamed>::type;
+          using RhsT = typename mguid::ExtractType<RhsNamed>::type;
+
+          return requires(const LhsT& a, const RhsT& b) { a == b; };
+        }
+      }.template operator()<LhsNamedTypes>() &&
+              ...);
+    }
+  }
+};
+
+template <typename... LhsNamedTypes>
+struct NamedTypesThreeWayComparable {
+  template <typename... RhsNamedTypes>
+  static consteval bool with() {
+    if constexpr (sizeof...(LhsNamedTypes) != sizeof...(RhsNamedTypes)) {
+      return false;
+    } else {
+      return ([]<typename LhsNamed>() {
+        if constexpr (constexpr auto Tag = LhsNamed{}.tag(); !mguid::is_one_of<Tag, RhsNamedTypes{}...>()) {
+          return false;
+        } else {
+          constexpr std::size_t RhsIndex = mguid::index_in_pack<Tag, RhsNamedTypes{}...>();
+          using RhsNamed = std::tuple_element_t<RhsIndex, std::tuple<RhsNamedTypes...>>;
+
+          using LhsT = typename mguid::ExtractType<LhsNamed>::type;
+          using RhsT = typename mguid::ExtractType<RhsNamed>::type;
+
+          return requires(const LhsT& a, const RhsT& b) { a <=> b; };
+        }
+      }.template operator()<LhsNamedTypes>() &&
+              ...);
+    }
+  }
+};
 
 }  // namespace mguid
 

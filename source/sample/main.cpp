@@ -26,6 +26,8 @@ int main() {
 
   Vec3i vec3{"x"_tag = 4, "y"_tag = 5, "z"_tag = 6};
 
+  // [[maybe_unused]] const auto w = vec3.get<"w">();
+
   std::cout << vec1.get<"x">() << std::endl;
   std::cout << vec1.get<"y">() << std::endl;
   std::cout << vec1.get<"z">() << std::endl;
