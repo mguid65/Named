@@ -3,6 +3,7 @@
 #include <Named/TaggedBitset.hpp>
 
 #include <iostream>
+#include <utility>
 
 using mguid::NamedTuple;
 using mguid::NamedType;
@@ -12,8 +13,15 @@ int main() {
   using namespace mguid::literals;
 
   using Vec3i = NamedTuple<NamedType<"x", int>, NamedType<"y", int>, NamedType<"z", int>>;
+  using Color3i = NamedTuple<NamedType<"r", int>, NamedType<"g", int>, NamedType<"b", int>>;
 
-  Vec3i vec1{NamedTypeV<"x">(11), NamedTypeV<"z">(13), NamedTypeV<"y">(12)};
+  const Vec3i vec1{NamedTypeV<"x">(11), NamedTypeV<"z">(13), NamedTypeV<"y">(12)};
+  Color3i color3{NamedTypeV<"r">(255),
+                 NamedTypeV<"g">(255),
+                 NamedTypeV<"b">(255)};
+
+  auto merged = tuple_cat(vec1, color3);
+
   Vec3i vec2{1, 2, 3};
 
   Vec3i vec3{"x"_tag = 4, "y"_tag = 5, "z"_tag = 6};
@@ -51,6 +59,23 @@ int main() {
   print_named_tuple(nt);
 
   print_named_tuple(nt2);
+
+  print_named_tuple(merged);
+
+  int j{42};
+  NamedTuple<NamedType<"ref", int&>> ref{j};
+
+  print_named_tuple(ref);
+
+  auto merged_with_ref = mguid::tuple_cat(vec1, ref);
+
+  print_named_tuple(merged_with_ref);
+
+  ref.set<"ref">(30);
+
+  print_named_tuple(merged_with_ref);
+
+  static_assert(std::is_same_v<std::tuple_element_t<3, decltype(merged_with_ref)>, int&>);
 
   const auto nt_deduced = NamedTuple{"a"_name = 'a', "b"_name = "b", "c"_name = 2};
   print_named_tuple(nt_deduced);
