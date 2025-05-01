@@ -7,7 +7,7 @@ from conan.tools.build import can_run
 
 class NamedConan(ConanFile):
     name = 'named'
-    version = '0.0.5'
+    version = '0.0.6'
 
     license = 'MIT'
     author = 'Matthew Guidry'
