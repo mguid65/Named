@@ -614,7 +614,7 @@ TEST_CASE("NamedTuple tuple_cat combines types correctly") {
   Color3 color{0.1f, 0.2f, 0.3f};
 
   SECTION("Result of tuple_cat is correct type and size") {
-    auto result = tuple_cat(pos, color);
+    auto result = mguid::tuple_cat(pos, color);
 
     STATIC_REQUIRE(std::is_same_v<
         decltype(result),
