@@ -593,3 +593,69 @@ TEST_CASE("NamedTuple Trait") {
   STATIC_REQUIRE(mguid::IsNamedTuple<mguid::NamedTuple<mguid::NamedType<"key", int>>>);
   STATIC_REQUIRE_FALSE(mguid::IsNamedTuple<int>);
 }
+
+TEST_CASE("NamedTuple tuple_cat combines types correctly") {
+  constexpr mguid::StringLiteral x{"x"};
+  constexpr mguid::StringLiteral y{"y"};
+  constexpr mguid::StringLiteral z{"z"};
+  constexpr mguid::StringLiteral r{"r"};
+  constexpr mguid::StringLiteral g{"g"};
+  constexpr mguid::StringLiteral b{"b"};
+
+  using Vec3 = mguid::NamedTuple<mguid::NamedType<x, int>,
+                                 mguid::NamedType<y, int>,
+                                 mguid::NamedType<z, int>>;
+
+  using Color3 = mguid::NamedTuple<mguid::NamedType<r, float>,
+                                   mguid::NamedType<g, float>,
+                                   mguid::NamedType<b, float>>;
+
+  Vec3 pos{1, 2, 3};
+  Color3 color{0.1f, 0.2f, 0.3f};
+
+  SECTION("Result of tuple_cat is correct type and size") {
+    auto result = tuple_cat(pos, color);
+
+    STATIC_REQUIRE(std::is_same_v<
+        decltype(result),
+        mguid::NamedTuple<
+            mguid::NamedType<x, int>,
+            mguid::NamedType<y, int>,
+            mguid::NamedType<z, int>,
+            mguid::NamedType<r, float>,
+            mguid::NamedType<g, float>,
+            mguid::NamedType<b, float>>>);
+
+    STATIC_REQUIRE(std::tuple_size_v<decltype(result)> == 6);
+  }
+
+  SECTION("tuple_cat with const inputs yields values") {
+    const auto& cref_pos = pos;
+    const auto& cref_color = color;
+    auto result = mguid::tuple_cat(cref_pos, cref_color);
+
+    // Type check individual elements
+    STATIC_REQUIRE(std::is_same_v<
+        std::tuple_element_t<0, decltype(result)>, int>);
+    STATIC_REQUIRE(std::is_same_v<
+        std::tuple_element_t<3, decltype(result)>, float>);
+  }
+
+  SECTION("tuple_cat with lvalue refs produces values (not references)") {
+    auto result = mguid::tuple_cat(pos, color);
+
+    STATIC_REQUIRE(std::is_same_v<
+        std::tuple_element_t<1, decltype(result)>, int>);
+    STATIC_REQUIRE(std::is_same_v<
+        std::tuple_element_t<4, decltype(result)>, float>);
+  }
+
+  SECTION("tuple_cat with rvalue produces rvalue types") {
+    auto result = mguid::tuple_cat(std::move(pos), std::move(color));
+
+    STATIC_REQUIRE(std::is_same_v<
+        std::tuple_element_t<2, decltype(result)>, int>);
+    STATIC_REQUIRE(std::is_same_v<
+        std::tuple_element_t<5, decltype(result)>, float>);
+  }
+}
