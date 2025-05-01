@@ -35,7 +35,6 @@
 #include <algorithm>
 #include <cstdint>
 #include <functional>
-#include <string_view>
 #include <tuple>
 #include <type_traits>
 
@@ -115,7 +114,7 @@ struct NamedTuple : std::tuple<typename ExtractType<NamedTypes>::type...> {
    * @param value value to set
    */
   template <StringLiteral Tag, typename Value>
-    requires(sizeof...(NamedTypes) > 0 && (is_one_of<Tag, NamedTypes{}...>()) &&
+    requires(sizeof...(NamedTypes) > 0 && CheckKeys<Tag, NamedTypes...> &&
              std::is_convertible_v<
                  Value, std::remove_reference_t<std::tuple_element_t<index_in_pack<Tag, NamedTypes{}...>(), Base>>>)
   constexpr void set(Value&& value) {
@@ -129,7 +128,7 @@ struct NamedTuple : std::tuple<typename ExtractType<NamedTypes>::type...> {
    * @return the element of the NamedTuple whose name is Tag
    */
   template <StringLiteral Tag>
-    requires(sizeof...(NamedTypes) > 0 &&(is_one_of<Tag, NamedTypes{}...>()))
+    requires(sizeof...(NamedTypes) > 0 && CheckKeys<Tag, NamedTypes...>)
   [[nodiscard]] constexpr decltype(auto) get() & noexcept {
     constexpr std::size_t Index = index_in_pack<Tag, NamedTypes{}...>();
     return std::get<Index>(static_cast<Base&>(*this));
@@ -141,7 +140,7 @@ struct NamedTuple : std::tuple<typename ExtractType<NamedTypes>::type...> {
    * @return the element of the NamedTuple whose name is Tag
    */
   template <StringLiteral Tag>
-    requires(sizeof...(NamedTypes) > 0 && (is_one_of<Tag, NamedTypes{}...>()))
+    requires(sizeof...(NamedTypes) > 0 && CheckKeys<Tag, NamedTypes...>)
   [[nodiscard]] constexpr decltype(auto) get() const& noexcept {
     constexpr std::size_t Index = index_in_pack<Tag, NamedTypes{}...>();
     return std::get<Index>(static_cast<const Base&>(*this));
@@ -153,7 +152,7 @@ struct NamedTuple : std::tuple<typename ExtractType<NamedTypes>::type...> {
    * @return the element of the NamedTuple whose name is Tag
    */
   template <StringLiteral Tag>
-    requires(sizeof...(NamedTypes) > 0 && (is_one_of<Tag, NamedTypes{}...>()))
+    requires(sizeof...(NamedTypes) > 0 && CheckKeys<Tag, NamedTypes...>)
   [[nodiscard]] constexpr decltype(auto) get() && noexcept {
     constexpr std::size_t Index = index_in_pack<Tag, NamedTypes{}...>();
     return std::get<Index>(static_cast<Base&>(*this));
@@ -165,7 +164,7 @@ struct NamedTuple : std::tuple<typename ExtractType<NamedTypes>::type...> {
    * @return the element of the NamedTuple whose name is Tag
    */
   template <StringLiteral Tag>
-    requires(sizeof...(NamedTypes) > 0 && (is_one_of<Tag, NamedTypes{}...>()))
+    requires(sizeof...(NamedTypes) > 0 && CheckKeys<Tag, NamedTypes...>)
   [[nodiscard]] constexpr decltype(auto) get() const&& noexcept {
     constexpr std::size_t Index = index_in_pack<Tag, NamedTypes{}...>();
     return std::get<Index>(static_cast<const Base&>(*this));
@@ -513,7 +512,7 @@ constexpr auto tuple_cat(Tuples&&... tuples) {
  * @return A reference to the selected element of nt
  */
 template <StringLiteral Tag, typename... NamedTypes>
-  requires(sizeof...(NamedTypes) > 0 && (is_one_of<Tag, NamedTypes{}...>()))
+  requires(sizeof...(NamedTypes) > 0 && CheckKeys<Tag, NamedTypes...>)
 [[nodiscard]] constexpr std::tuple_element_t<index_in_pack<Tag, NamedTypes{}...>(), NamedTuple<NamedTypes...>>& get(
     NamedTuple<NamedTypes...>& nt) noexcept {
   return nt.template get<Tag>();
@@ -528,7 +527,7 @@ template <StringLiteral Tag, typename... NamedTypes>
  * @return A reference to the selected element of nt
  */
 template <StringLiteral Tag, typename... NamedTypes>
-  requires(sizeof...(NamedTypes) > 0 && (is_one_of<Tag, NamedTypes{}...>()))
+  requires(sizeof...(NamedTypes) > 0 && CheckKeys<Tag, NamedTypes...>)
 [[nodiscard]] constexpr std::tuple_element_t<index_in_pack<Tag, NamedTypes{}...>(), NamedTuple<NamedTypes...>>&& get(
     NamedTuple<NamedTypes...>&& nt) noexcept {
   return nt.template get<Tag>();
@@ -543,7 +542,7 @@ template <StringLiteral Tag, typename... NamedTypes>
  * @return A reference to the selected element of nt
  */
 template <StringLiteral Tag, typename... NamedTypes>
-  requires(sizeof...(NamedTypes) > 0 && (is_one_of<Tag, NamedTypes{}...>()))
+  requires(sizeof...(NamedTypes) > 0 && CheckKeys<Tag, NamedTypes...>)
 [[nodiscard]] constexpr const std::tuple_element_t<index_in_pack<Tag, NamedTypes{}...>(), NamedTuple<NamedTypes...>>&
 get(const NamedTuple<NamedTypes...>& nt) noexcept {
   return nt.template get<Tag>();
@@ -558,7 +557,7 @@ get(const NamedTuple<NamedTypes...>& nt) noexcept {
  * @return A reference to the selected element of nt
  */
 template <StringLiteral Tag, typename... NamedTypes>
-  requires(sizeof...(NamedTypes) > 0 && (is_one_of<Tag, NamedTypes{}...>()))
+  requires(sizeof...(NamedTypes) > 0 && CheckKeys<Tag, NamedTypes...>)
 [[nodiscard]] constexpr const std::tuple_element_t<index_in_pack<Tag, NamedTypes{}...>(), NamedTuple<NamedTypes...>>&&
 get(const NamedTuple<NamedTypes...>&& nt) noexcept {
   return nt.template get<Tag>();
