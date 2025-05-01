@@ -46,7 +46,7 @@ if (NAMED_BUILD_SAMPLE)
     add_executable(sample)
     target_sources(sample PRIVATE source/sample/main.cpp)
     target_link_libraries(sample PRIVATE named)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fconcepts-diagnostics-depth=3")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fconcepts-diagnostics-depth=2")
 endif ()
 
 if (NAMED_BUILD_TESTS)

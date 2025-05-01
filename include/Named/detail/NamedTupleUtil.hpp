@@ -33,7 +33,6 @@
 #ifndef NAMED_NAMEDTUPLEUTIL_HPP
 #define NAMED_NAMEDTUPLEUTIL_HPP
 
-#include "Named/NamedTuple.hpp"
 #include <algorithm>
 #include <cstdint>
 #include <functional>
@@ -42,6 +41,7 @@
 
 #include "Named/detail/Common.hpp"
 #include "Named/detail/StringLiteral.hpp"
+
 namespace mguid {
 /**
  * @brief A helper type to associate a StringLiteral tag with a type for use with NamedTuple
