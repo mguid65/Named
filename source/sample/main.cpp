@@ -20,7 +20,7 @@ int main() {
                  NamedTypeV<"g">(255),
                  NamedTypeV<"b">(255)};
 
-  auto merged = tuple_cat(vec1, color3);
+  auto merged = mguid::tuple_cat(vec1, color3);
 
   Vec3i vec2{1, 2, 3};
 
