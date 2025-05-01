@@ -424,62 +424,6 @@ template <typename Func, template <typename...> typename Tuple, typename... Name
       named_tuple);
 }
 
-template <typename Tuple1, typename Tuple2>
-constexpr auto TupleCatHelper(Tuple1 t1, Tuple2 t2) {
-  return [&]<typename... TOuter>(mguid::NamedTuple<TOuter...>) {
-    return [&]<typename... TInner>(mguid::NamedTuple<TInner...>) {
-      return std::apply(
-          [&]<typename... ArgsOuter>(ArgsOuter&&... outer_args) {
-            return std::apply(
-                [&]<typename... ArgsInner>(ArgsInner&&... inner_args) {
-                  return mguid::NamedTuple<TOuter..., TInner...>(std::forward<ArgsOuter>(outer_args)...,
-                                                                 std::forward<ArgsInner>(inner_args)...);
-                },
-                static_cast<const typename std::remove_cvref_t<Tuple2>::Base&>(t2));
-          },
-          static_cast<const typename std::remove_cvref_t<Tuple1>::Base&>(t1));
-    }(t2);
-  }(t1);
-}
-
-template <typename T1, typename T2>
-using TupleCat2T =
-    decltype(TupleCatHelper(std::declval<std::remove_cvref_t<T1>>(), std::declval<std::remove_cvref_t<T2>>()));
-
-template <typename FirstTuple, typename... Tuples>
-struct TupleCatResult {
-private:
-  using rhs_recursive_type = typename TupleCatResult<Tuples...>::type;
-
-public:
-  using type = TupleCat2T<FirstTuple, rhs_recursive_type>;
-};
-
-template <typename FirstTuple>
-struct TupleCatResult<FirstTuple> {
-  using type = FirstTuple;
-};
-
-template <typename... Tuples>
-using TupleCatT = typename TupleCatResult<Tuples...>::type;
-
-/**
- * @brief Concatenate multiple tuples into a single tuple
- * @tparam Tuples
- * @param tuples
- * @return
- */
-template <typename... Tuples>
-constexpr TupleCatT<Tuples...> my_tuple_cat(Tuples&&... tuples) {
-  if constexpr (sizeof...(Tuples) < 2) {
-    return (tuples, ...);
-  } else {
-    return std::apply(
-        []<typename... Types>(Types&&... elements) { return TupleCatT<Tuples...>{std::forward<Types>(elements)...}; },
-        std::tuple_cat(static_cast<const typename std::remove_cvref_t<Tuples>::Base&>(tuples)...));
-  }
-}
-
 /**
  * @brief Extracts the element from the NamedTuple with the key Tag. Tag must be one of the tags
  * associated with a type in NamedTypes.
