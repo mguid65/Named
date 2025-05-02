@@ -42,9 +42,7 @@
 
 #include "Named/detail/Common.hpp"
 #include "Named/detail/StringLiteral.hpp"
-
 namespace mguid {
-
 /**
  * @brief A helper type to associate a StringLiteral tag with a type for use with NamedTuple
  * @tparam Tag the "name" associated with the type
@@ -223,7 +221,74 @@ constexpr bool is_one_of() {
   return (... || (Key == NamedTypes));
 }
 
-// || member_name_diagnosis<TupleType<decltype(NamedTypes)...>, Key>
+template <std::size_t MaxLen = 64>
+consteval std::size_t levenshtein_distance(char const* s1, std::size_t len1, char const* s2, std::size_t len2) {
+  std::array<std::size_t, MaxLen + 1> prev{}, curr{};
+
+  for (std::size_t j = 0; j <= len2; ++j) prev[j] = j;
+  for (std::size_t i = 1; i <= len1; ++i) {
+    curr[0] = i;
+    for (std::size_t j = 1; j <= len2; ++j) {
+      std::size_t insertCost = curr[j - 1] + 1;
+      std::size_t deleteCost = prev[j] + 1;
+      std::size_t replaceCost = prev[j - 1] + (s1[i - 1] == s2[j - 1] ? 0 : 1);
+      curr[j] = std::min({insertCost, deleteCost, replaceCost});
+    }
+    prev = curr;
+  }
+  return prev[len2];
+}
+
+// nearest_index: compute distances to each Haystack, then pick the smallest.
+template <StringLiteral Needle, StringLiteral... Haystack>
+consteval std::size_t nearest_index() {
+  constexpr std::size_t count = sizeof...(Haystack);
+
+  constexpr std::array<std::size_t, count> distances = {
+    {levenshtein_distance(Needle.value, Needle.size, Haystack.value, Haystack.size)...}};
+
+  std::size_t best = 0;
+  std::size_t bestDist = distances[0];
+  for (std::size_t i = 1; i < count; ++i) {
+    if (distances[i] < bestDist) {
+      bestDist = distances[i];
+      best = i;
+    }
+  }
+  return best;
+}
+
+template <StringLiteral Key, typename... NamedTypes>
+consteval auto diagnose_key() {
+  constexpr StringLiteral closest = []<size_t Idx, StringLiteral... Tags>() constexpr {
+    constexpr std::tuple<decltype(Tags)...> tags_tp{Tags...};
+    return std::get<Idx>(tags_tp);
+  }.template operator()<nearest_index<Key, NamedTypes::tag()...>(), NamedTypes::tag()...>();
+  return concat_literals<
+      "`",
+      Key,
+      "` was not found in [",
+      join_with_delimiter<", ", concat_literals<"`", NamedTypes::tag(), "`">()...>(),
+      "], Did you mean `",
+      closest,
+      "`?"
+    >();
+}
+
+template <auto>
+struct Msg {
+  static constexpr auto value = false;
+};
+
+template <class Hint>
+concept Diagnosis = Hint::value;
+
+template <StringLiteral Key, typename... NamedTypes>
+concept MissingKey = Diagnosis<Msg<diagnose_key<Key, NamedTypes...>()>>;
+
+template <StringLiteral Key, typename... NamedTypes>
+concept CheckKeys = is_one_of<Key, NamedTypes{}...>() || MissingKey<Key, NamedTypes...>;
+
 template <typename... LhsNamedTypes>
 struct NamedTypesEqualityComparable {
   template <typename... RhsNamedTypes>

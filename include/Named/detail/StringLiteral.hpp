@@ -47,6 +47,8 @@ namespace mguid {
 template <size_t NSize>
 struct StringLiteral {
   // NOLINTBEGIN(google-explicit-constructor)
+  constexpr StringLiteral() noexcept = default;
+
   /**
    * @brief Construct a StringLiteral from a string literal
    * @param str a string literal as a const reference to a sized char array
@@ -102,6 +104,50 @@ struct StringLiteral {
   char value[NSize];
   static constexpr size_t size{NSize};
 };
+
+template <StringLiteral... Tags>
+consteval auto concat_literals() {
+  constexpr size_t total_chars = 0 + ((Tags.size - 1) + ...);
+  constexpr size_t BufSize = total_chars + 1;
+
+  StringLiteral<BufSize> result;
+
+  size_t offset = 0;
+  (([&offset, &result] {
+     for (size_t i = 0; i + 1 < Tags.size; ++i) { result.value[offset + i] = Tags.value[i]; }
+     offset += Tags.size - 1;
+   }()),
+   ...);
+
+  result.value[BufSize - 1] = '\0';
+  return result;
+}
+
+template <StringLiteral Delim, StringLiteral... Tags>
+consteval auto join_with_delimiter() {
+  constexpr size_t Count = sizeof...(Tags);
+  constexpr size_t chars_ss = 0 + ((Tags.size - 1) + ...);
+  constexpr size_t delim_chars = (Count > 1 ? (Count - 1) * (Delim.size - 1) : 0);
+  constexpr size_t BufSize = chars_ss + delim_chars + 1;
+
+  StringLiteral<BufSize> result;
+  size_t offset = 0;
+  size_t idx = 0;
+  (
+      [&offset, &idx, &result] {
+        for (size_t j = 0; j + 1 < Tags.size; ++j) { result.value[offset + j] = Tags.value[j]; }
+        offset += Tags.size - 1;
+
+        if (++idx < Count) {
+          for (size_t j = 0; j + 1 < Delim.size; ++j) { result.value[offset + j] = Delim.value[j]; }
+          offset += Delim.size - 1;
+        }
+      }(),
+      ...);
+
+  result.value[BufSize - 1] = '\0';
+  return result;
+}
 
 /**
  * @brief Constrains that a pack of non-types contains all unique values
