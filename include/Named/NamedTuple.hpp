@@ -272,9 +272,9 @@ struct NamedTuple : std::tuple<typename ExtractType<NamedTypes>::type...> {
    * std::strong_ordering::equal.
    */
   template <typename... OtherNamedTypes>
-    requires(NamedTypesThreeWayComparable<NamedTypes...>::template with<OtherNamedTypes...>())
+    requires(sizeof...(NamedTypes) == sizeof...(OtherNamedTypes) &&
+             NamedTypesThreeWayComparable<NamedTypes...>::template with<OtherNamedTypes...>())
   [[nodiscard]] constexpr auto operator<=>(const NamedTuple<OtherNamedTypes...>& other) const {
-    static_assert(sizeof...(NamedTypes) == sizeof...(OtherNamedTypes));
     if constexpr (sizeof...(NamedTypes) == 0 && sizeof...(OtherNamedTypes) == 0) { return std::strong_ordering::equal; }
 
     std::common_comparison_category_t<
@@ -439,7 +439,8 @@ namespace detail {
  * @brief Concatenate the NamedTypes list from several tuples into one
  */
 template <typename... Tuples>
-using MergedNamedTypesT = decltype(std::tuple_cat(typename NamedTypesFromTuple<std::remove_cvref_t<Tuples>>::type{}...));
+using MergedNamedTypesT =
+    decltype(std::tuple_cat(typename NamedTypesFromTuple<std::remove_cvref_t<Tuples>>::type{}...));
 
 /**
  * @brief The resulting NamedTuple type that would result from a tuple_cat
@@ -481,7 +482,7 @@ constexpr decltype(auto) to_base_view(Tuple&& tuple) {
   }
 }
 
-} // namespace detail
+}  // namespace detail
 
 /**
  * @brief Concatenate a set of NamedTuples
@@ -496,11 +497,9 @@ constexpr auto tuple_cat(Tuples&&... tuples) {
 
   auto combined_values = std::tuple_cat(detail::to_base_view(std::forward<Tuples>(tuples))...);
 
-  return std::apply(
-      []<typename... TupleElement>(TupleElement&&... elems) {
-        return ResultNamedTuple{std::forward<TupleElement>(elems)...};
-      },
-      std::move(combined_values));
+  return std::apply([]<typename... TupleElement>(
+                        TupleElement&&... elems) { return ResultNamedTuple{std::forward<TupleElement>(elems)...}; },
+                    std::move(combined_values));
 }
 
 /**

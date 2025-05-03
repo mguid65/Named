@@ -45,6 +45,7 @@
 #include <tuple>
 #include <type_traits>
 
+// BEGIN SYNTH_THREEWAY_RESULT_HPP
 namespace mguid {
 
 /**
@@ -78,7 +79,9 @@ template <class T, class U = T>
 using SynthThreeWayResultT = decltype(SynthThreeWay(std::declval<T&>(), std::declval<U&>()));
 
 }  // namespace mguid
+// END SYNTH_THREEWAY_RESULT_HPP
 
+// BEGIN COMMON_HPP
 namespace mguid {
 
 /**
@@ -144,7 +147,9 @@ consteval bool all_unique_nttps() {
 }
 
 }  // namespace mguid
+// END COMMON_HPP
 
+// BEGIN STRING_LITERAL_HPP
 namespace mguid {
 
 /**
@@ -319,7 +324,9 @@ std::ostream& operator<<(std::ostream& os, const StringLiteral<NSize>& lit) {
 }
 
 }  // namespace mguid
+// END STRING_LITERAL_HPP
 
+// BEGIN NAMED_TUPLE_UTIL_HPP
 namespace mguid {
 /**
  * @brief A helper type to associate a StringLiteral tag with a type for use with NamedTuple
@@ -536,15 +543,13 @@ consteval std::size_t nearest_index() {
   return best;
 }
 
-template <StringLiteral Key, typename... NamedTypes>
+template <StringLiteral Key, StringLiteral... Tags>
 consteval auto diagnose_key() {
-  constexpr StringLiteral closest = []<size_t Idx, StringLiteral... Tags>() constexpr {
-    constexpr std::tuple<decltype(Tags)...> tags_tp{Tags...};
-    return std::get<Idx>(tags_tp);
-  }.template operator()<nearest_index<Key, NamedTypes::tag()...>(), NamedTypes::tag()...>();
+  constexpr std::tuple<decltype(Tags)...> tags_tp{Tags...};
+  constexpr StringLiteral closest = std::get<nearest_index<Key, Tags...>()>(tags_tp);
   return concat_literals<"`", Key, "` was not found in [",
-                         join_with_delimiter<", ", concat_literals<"`", NamedTypes::tag(), "`">()...>(),
-                         "], Did you mean `", closest, "`?">();
+                         join_with_delimiter<", ", concat_literals<"`", Tags, "`">()...>(), "], Did you mean `",
+                         closest, "`?">();
 }
 
 template <auto>
@@ -556,7 +561,7 @@ template <class Hint>
 concept Diagnosis = Hint::value;
 
 template <StringLiteral Key, typename... NamedTypes>
-concept MissingKey = Diagnosis<Msg<diagnose_key<Key, NamedTypes...>()>>;
+concept MissingKey = Diagnosis<Msg<diagnose_key<Key, NamedTypes::tag()...>()>>;
 
 template <StringLiteral Key, typename... NamedTypes>
 concept CheckKeys = is_one_of<Key, NamedTypes{}...>() || MissingKey<Key, NamedTypes...>;
@@ -590,29 +595,24 @@ template <typename... LhsNamedTypes>
 struct NamedTypesThreeWayComparable {
   template <typename... RhsNamedTypes>
   static consteval bool with() {
-    if constexpr (sizeof...(LhsNamedTypes) != sizeof...(RhsNamedTypes)) {
+    if constexpr (sizeof...(LhsNamedTypes) != sizeof...(RhsNamedTypes) ||
+                  ((LhsNamedTypes{}.tag() != RhsNamedTypes{}.tag()) || ...)) {
       return false;
     } else {
-      return ([]<typename LhsNamed>() {
-        if constexpr (constexpr auto Tag = LhsNamed{}.tag(); !mguid::is_one_of<Tag, RhsNamedTypes{}...>()) {
-          return false;
-        } else {
-          constexpr std::size_t RhsIndex = mguid::index_in_pack<Tag, RhsNamedTypes{}...>();
-          using RhsNamed = std::tuple_element_t<RhsIndex, std::tuple<RhsNamedTypes...>>;
+      return ([]<typename LhsNamed, typename RhsNamed>() {
+        using LhsT = typename mguid::ExtractType<LhsNamed>::type;
+        using RhsT = typename mguid::ExtractType<RhsNamed>::type;
 
-          using LhsT = typename mguid::ExtractType<LhsNamed>::type;
-          using RhsT = typename mguid::ExtractType<RhsNamed>::type;
-
-          return requires(const LhsT& a, const RhsT& b) { a <=> b; };
-        }
-      }.template operator()<LhsNamedTypes>() &&
-              ...);
+        return requires(const LhsT& a, const RhsT& b) { a <=> b; };
+      }.template operator()<LhsNamedTypes, RhsNamedTypes>() && ...);
     }
   }
 };
 
 }  // namespace mguid
+// END NAMED_TUPLE_UTIL_HPP
 
+// BEGIN NAMED-TUPLE_HPP
 namespace mguid {
 
 /**
@@ -843,9 +843,9 @@ struct NamedTuple : std::tuple<typename ExtractType<NamedTypes>::type...> {
    * std::strong_ordering::equal.
    */
   template <typename... OtherNamedTypes>
-    requires(NamedTypesThreeWayComparable<NamedTypes...>::template with<OtherNamedTypes...>())
+    requires(sizeof...(NamedTypes) == sizeof...(OtherNamedTypes) &&
+             NamedTypesThreeWayComparable<NamedTypes...>::template with<OtherNamedTypes...>())
   [[nodiscard]] constexpr auto operator<=>(const NamedTuple<OtherNamedTypes...>& other) const {
-    static_assert(sizeof...(NamedTypes) == sizeof...(OtherNamedTypes));
     if constexpr (sizeof...(NamedTypes) == 0 && sizeof...(OtherNamedTypes) == 0) { return std::strong_ordering::equal; }
 
     std::common_comparison_category_t<
@@ -1161,7 +1161,9 @@ template <typename MaybeTuple>
 constexpr auto IsNamedTupleV = IsNamedTupleTrait<MaybeTuple>::value;
 
 }  // namespace mguid
+// END NAMED_TUPLE_HPP
 
+// BEGIN TAGGED_ARRAY_HPP
 namespace mguid {
 
 /**
@@ -1423,7 +1425,9 @@ constexpr const ValueType&& get(const TaggedArray<ValueType, Tags...>&& arr) noe
 }
 
 }  // namespace mguid
+// END TAGGED_ARRAY_HPP
 
+// BEGIN TAGGED_BITSET_HPP
 namespace mguid {
 
 /**
@@ -1556,5 +1560,6 @@ struct TaggedBitset : std::bitset<sizeof...(Tags)> {
 };
 
 }  // namespace mguid
+// END TAGGED_BITSET_HPP
 
 #endif  // MGUID_SINGLE_INCLUDE_NAMED_NAMED_HPP

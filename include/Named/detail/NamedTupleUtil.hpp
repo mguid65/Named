@@ -245,7 +245,7 @@ consteval std::size_t nearest_index() {
   constexpr std::size_t count = sizeof...(Haystack);
 
   constexpr std::array<std::size_t, count> distances = {
-    {levenshtein_distance(Needle.value, Needle.size, Haystack.value, Haystack.size)...}};
+      {levenshtein_distance(Needle.value, Needle.size, Haystack.value, Haystack.size)...}};
 
   std::size_t best = 0;
   std::size_t bestDist = distances[0];
@@ -258,21 +258,13 @@ consteval std::size_t nearest_index() {
   return best;
 }
 
-template <StringLiteral Key, typename... NamedTypes>
+template <StringLiteral Key, StringLiteral... Tags>
 consteval auto diagnose_key() {
-  constexpr StringLiteral closest = []<size_t Idx, StringLiteral... Tags>() constexpr {
-    constexpr std::tuple<decltype(Tags)...> tags_tp{Tags...};
-    return std::get<Idx>(tags_tp);
-  }.template operator()<nearest_index<Key, NamedTypes::tag()...>(), NamedTypes::tag()...>();
-  return concat_literals<
-      "`",
-      Key,
-      "` was not found in [",
-      join_with_delimiter<", ", concat_literals<"`", NamedTypes::tag(), "`">()...>(),
-      "], Did you mean `",
-      closest,
-      "`?"
-    >();
+  constexpr std::tuple<decltype(Tags)...> tags_tp{Tags...};
+  constexpr StringLiteral closest = std::get<nearest_index<Key, Tags...>()>(tags_tp);
+  return concat_literals<"`", Key, "` was not found in [",
+                         join_with_delimiter<", ", concat_literals<"`", Tags, "`">()...>(), "], Did you mean `",
+                         closest, "`?">();
 }
 
 template <auto>
@@ -284,7 +276,7 @@ template <class Hint>
 concept Diagnosis = Hint::value;
 
 template <StringLiteral Key, typename... NamedTypes>
-concept MissingKey = Diagnosis<Msg<diagnose_key<Key, NamedTypes...>()>>;
+concept MissingKey = Diagnosis<Msg<diagnose_key<Key, NamedTypes::tag()...>()>>;
 
 template <StringLiteral Key, typename... NamedTypes>
 concept CheckKeys = is_one_of<Key, NamedTypes{}...>() || MissingKey<Key, NamedTypes...>;
@@ -318,23 +310,16 @@ template <typename... LhsNamedTypes>
 struct NamedTypesThreeWayComparable {
   template <typename... RhsNamedTypes>
   static consteval bool with() {
-    if constexpr (sizeof...(LhsNamedTypes) != sizeof...(RhsNamedTypes)) {
+    if constexpr (sizeof...(LhsNamedTypes) != sizeof...(RhsNamedTypes) ||
+                  ((LhsNamedTypes{}.tag() != RhsNamedTypes{}.tag()) || ...)) {
       return false;
     } else {
-      return ([]<typename LhsNamed>() {
-        if constexpr (constexpr auto Tag = LhsNamed{}.tag(); !mguid::is_one_of<Tag, RhsNamedTypes{}...>()) {
-          return false;
-        } else {
-          constexpr std::size_t RhsIndex = mguid::index_in_pack<Tag, RhsNamedTypes{}...>();
-          using RhsNamed = std::tuple_element_t<RhsIndex, std::tuple<RhsNamedTypes...>>;
+      return ([]<typename LhsNamed, typename RhsNamed>() {
+        using LhsT = typename mguid::ExtractType<LhsNamed>::type;
+        using RhsT = typename mguid::ExtractType<RhsNamed>::type;
 
-          using LhsT = typename mguid::ExtractType<LhsNamed>::type;
-          using RhsT = typename mguid::ExtractType<RhsNamed>::type;
-
-          return requires(const LhsT& a, const RhsT& b) { a <=> b; };
-        }
-      }.template operator()<LhsNamedTypes>() &&
-              ...);
+        return requires(const LhsT& a, const RhsT& b) { a <=> b; };
+      }.template operator()<LhsNamedTypes, RhsNamedTypes>() && ...);
     }
   }
 };

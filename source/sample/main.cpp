@@ -23,7 +23,6 @@ int main() {
   auto merged = mguid::tuple_cat(vec1, color3);
 
   Vec3i vec2{1, 2, 3};
-
   Vec3i vec3{"x"_tag = 4, "y"_tag = 5, "z"_tag = 6};
 
   std::cout << vec1.get<"x">() << std::endl;
