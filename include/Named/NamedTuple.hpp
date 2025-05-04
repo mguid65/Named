@@ -237,9 +237,9 @@ struct NamedTuple : std::tuple<typename ExtractType<NamedTypes>::type...> {
   }
 
   /**
-   * @brief Element-wise comparison of the elements in this NamedTuple with elements in a std::tuple
+   * @brief Element-wise equality comparison of the elements in this NamedTuple with elements in a std::tuple
    *
-   * Note: The key is not a part of the value of this type
+   * Note: The key order is irrelevant for this comparison
    *
    * @tparam OtherTypes pack of types in the std::tuple
    * @param other a std::tuple to compare against
@@ -264,9 +264,9 @@ struct NamedTuple : std::tuple<typename ExtractType<NamedTypes>::type...> {
   }
 
   /**
-   * @brief Spaceship compare against a std::tuple
-   * @tparam OtherNamedTypes pack of types in the std::tuple
-   * @param other a std::tuple to compare against
+   * @brief Threeway compare with another NamedTuple 
+   * @tparam OtherNamedTypes pack of NamedTypes in the NamedTuple
+   * @param other another NamedTuple to compare against
    * @returnThe relation between the first pair of non-equivalent elements if there is any,
    * std::strong_ordering::equal otherwise. For two empty tuples, returns
    * std::strong_ordering::equal.
