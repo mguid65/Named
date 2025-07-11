@@ -1,4 +1,4 @@
-# NamedTuple: Compile-Time Named Access to Structured Data in C++
+# Named: Compile-Time Named Access to Structured Data in C++
 
 > A C++20 header-only library for working with tuples, arrays, and bitsets using compile-time string tags.
 
