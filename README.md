@@ -7,7 +7,7 @@
 
 ## Overview
 
-NamedTuple provides C++ types for named access to structured data, using string literals at compile time.  
+Named provides C++ types for named access to structured data, using string literals at compile time.  
 It includes:
 
 - `NamedTuple`: a tuple with name-based accessors
@@ -16,8 +16,7 @@ It includes:
 
 ## Requirements
 
-- **C++20** compliant compiler:
-    - GCC 10+, Clang 11+, MSVC 2019+
+- **C++20** compliant compiler
 - **No external dependencies**
 - Include the `Named/` directory in your project
 
