@@ -223,7 +223,7 @@ struct NamedTuple : std::tuple<typename ExtractType<NamedTypes>::type...> {
    *
    * Do we want to compare as if we were calling get<KeyLhs>() == get<KeyRhs>()
    * or as if we are calling get<IndexLhs>() == get<IndexRhs>()? This matters because looking up by
-   * key makes it so the order doesn't matter.
+   * key makes it so the order doesnt matter.
    *
    * @tparam OtherNamedTypes pack of types in other NamedTuple
    * @param other another NamedTuple to compare against
@@ -396,8 +396,7 @@ template <typename Func, template <typename...> typename Tuple, typename... Name
       [&]<typename... Args>(Args&&... args) {
         return std::invoke(std::forward<Func>(func), std::pair(NamedTypes{}.tag(), std::forward<Args>(args))...);
       },
-      // detail::to_base_view(named_tuple));
-      named_tuple);
+      detail::to_base_view(named_tuple));
 }
 
 /**
@@ -415,8 +414,7 @@ template <typename Func, template <typename...> typename Tuple, typename... Name
       [&]<typename... Args>(Args&&... args) {
         return std::invoke(std::forward<Func>(func), std::pair(NamedTypes{}.tag(), std::forward<Args>(args))...);
       },
-      // detail::to_base_view(named_tuple));
-      named_tuple);
+      detail::to_base_view(named_tuple));
 }
 
 /**
@@ -434,8 +432,7 @@ template <typename Func, template <typename...> typename Tuple, typename... Name
       [&]<typename... Args>(Args&&... args) {
         return std::invoke(std::forward<Func>(func), std::pair(NamedTypes{}.tag(), std::forward<Args>(args))...);
       },
-      // detail::to_base_view(named_tuple));
-      named_tuple);
+      detail::to_base_view(named_tuple));
 }
 
 /**
@@ -453,8 +450,7 @@ template <typename Func, template <typename...> typename Tuple, typename... Name
       [&]<typename... Args>(Args&&... args) {
         return std::invoke(std::forward<Func>(func), std::pair(NamedTypes{}.tag(), std::forward<Args>(args))...);
       },
-      // detail::to_base_view(named_tuple));
-      named_tuple);
+      detail::to_base_view(named_tuple));
 }
 
 namespace detail {
