@@ -932,6 +932,26 @@ template <typename... NamedTypeVs>
       std::forward<NamedTypeVs>(args).value...);
 }
 
+namespace detail {
+/**
+ * @brief Convert a tuple to its base maintaining const ref qualifiers
+ * @tparam Tuple type of NamedTuple
+ * @param tuple tuple to convert to base
+ * @return The tuple cast to Base
+ */
+template <typename Tuple>
+constexpr decltype(auto) to_base_view(Tuple&& tuple) {
+  using TupleType = std::remove_reference_t<Tuple>;
+  if constexpr (std::is_rvalue_reference_v<decltype(tuple)>) {
+    return static_cast<typename TupleType::Base&&>(std::forward<Tuple>(tuple));
+  } else if constexpr (std::is_const_v<std::remove_reference_t<Tuple>>) {
+    return static_cast<const typename TupleType::Base&>(tuple);
+  } else {
+    return static_cast<typename TupleType::Base&>(tuple);
+  }
+}
+}
+
 /**
  * @brief Creates a NamedTuple object, deducing the target type from the types of arguments.
  * @tparam Func type of function to apply
@@ -947,7 +967,7 @@ template <typename Func, template <typename...> typename Tuple, typename... Name
       [&]<typename... Args>(Args&&... args) {
         return std::invoke(std::forward<Func>(func), std::pair(NamedTypes{}.tag(), std::forward<Args>(args))...);
       },
-      named_tuple);
+      detail::to_base_view(named_tuple));
 }
 
 /**
@@ -965,7 +985,7 @@ template <typename Func, template <typename...> typename Tuple, typename... Name
       [&]<typename... Args>(Args&&... args) {
         return std::invoke(std::forward<Func>(func), std::pair(NamedTypes{}.tag(), std::forward<Args>(args))...);
       },
-      named_tuple);
+      detail::to_base_view(named_tuple));
 }
 
 /**
@@ -983,7 +1003,7 @@ template <typename Func, template <typename...> typename Tuple, typename... Name
       [&]<typename... Args>(Args&&... args) {
         return std::invoke(std::forward<Func>(func), std::pair(NamedTypes{}.tag(), std::forward<Args>(args))...);
       },
-      named_tuple);
+      detail::to_base_view(named_tuple));
 }
 
 /**
@@ -1001,7 +1021,7 @@ template <typename Func, template <typename...> typename Tuple, typename... Name
       [&]<typename... Args>(Args&&... args) {
         return std::invoke(std::forward<Func>(func), std::pair(NamedTypes{}.tag(), std::forward<Args>(args))...);
       },
-      named_tuple);
+      detail::to_base_view(named_tuple));
 }
 
 namespace detail {
@@ -1034,24 +1054,6 @@ struct NamedTupleFromNamedTypesTuple<std::tuple<NamedTypes...>> {
  */
 template <typename NamedTypeTuple>
 using NamedTupleFromNamedTypesTupleT = typename NamedTupleFromNamedTypesTuple<NamedTypeTuple>::type;
-
-/**
- * @brief Convert a tuple to its base maintaining const ref qualifiers
- * @tparam Tuple type of NamedTuple
- * @param tuple tuple to convert to base
- * @return The tuple cast to Base
- */
-template <typename Tuple>
-constexpr decltype(auto) to_base_view(Tuple&& tuple) {
-  using TupleType = std::remove_reference_t<Tuple>;
-  if constexpr (std::is_rvalue_reference_v<decltype(tuple)>) {
-    return static_cast<typename TupleType::Base&&>(std::forward<Tuple>(tuple));
-  } else if constexpr (std::is_const_v<std::remove_reference_t<Tuple>>) {
-    return static_cast<const typename TupleType::Base&>(tuple);
-  } else {
-    return static_cast<typename TupleType::Base&>(tuple);
-  }
-}
 
 }  // namespace detail
 
