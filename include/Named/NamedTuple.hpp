@@ -369,9 +369,11 @@ namespace detail {
  * @return The tuple cast to Base
  */
 template <typename Tuple>
-constexpr decltype(auto) to_base_view(Tuple&& tuple) {
+constexpr decltype(auto) to_base(Tuple&& tuple) {
   using TupleType = std::remove_reference_t<Tuple>;
-  if constexpr (std::is_rvalue_reference_v<decltype(tuple)>) {
+  if constexpr (std::is_const_v<std::remove_reference_t<Tuple>> && std::is_rvalue_reference_v<decltype(tuple)>) {
+    return static_cast<const typename TupleType::Base&&>(tuple);
+  } else if constexpr (std::is_rvalue_reference_v<decltype(tuple)>) {
     return static_cast<typename TupleType::Base&&>(std::forward<Tuple>(tuple));
   } else if constexpr (std::is_const_v<std::remove_reference_t<Tuple>>) {
     return static_cast<const typename TupleType::Base&>(tuple);
@@ -396,7 +398,7 @@ template <typename Func, template <typename...> typename Tuple, typename... Name
       [&]<typename... Args>(Args&&... args) {
         return std::invoke(std::forward<Func>(func), std::pair(NamedTypes{}.tag(), std::forward<Args>(args))...);
       },
-      detail::to_base_view(named_tuple));
+      detail::to_base(named_tuple));
 }
 
 /**
@@ -414,7 +416,7 @@ template <typename Func, template <typename...> typename Tuple, typename... Name
       [&]<typename... Args>(Args&&... args) {
         return std::invoke(std::forward<Func>(func), std::pair(NamedTypes{}.tag(), std::forward<Args>(args))...);
       },
-      detail::to_base_view(named_tuple));
+      detail::to_base(named_tuple));
 }
 
 /**
@@ -432,7 +434,7 @@ template <typename Func, template <typename...> typename Tuple, typename... Name
       [&]<typename... Args>(Args&&... args) {
         return std::invoke(std::forward<Func>(func), std::pair(NamedTypes{}.tag(), std::forward<Args>(args))...);
       },
-      detail::to_base_view(named_tuple));
+      detail::to_base(named_tuple));
 }
 
 /**
@@ -450,7 +452,7 @@ template <typename Func, template <typename...> typename Tuple, typename... Name
       [&]<typename... Args>(Args&&... args) {
         return std::invoke(std::forward<Func>(func), std::pair(NamedTypes{}.tag(), std::forward<Args>(args))...);
       },
-      detail::to_base_view(named_tuple));
+      detail::to_base(named_tuple));
 }
 
 namespace detail {
@@ -497,7 +499,7 @@ constexpr auto tuple_cat(Tuples&&... tuples) {
   using CombinedTypesTuple = detail::MergedNamedTypesT<Tuples...>;
   using ResultNamedTuple = detail::NamedTupleFromNamedTypesTupleT<CombinedTypesTuple>;
 
-  auto combined_values = std::tuple_cat(detail::to_base_view(std::forward<Tuples>(tuples))...);
+  auto combined_values = std::tuple_cat(detail::to_base(std::forward<Tuples>(tuples))...);
 
   return std::apply([]<typename... TupleElement>(
                         TupleElement&&... elems) { return ResultNamedTuple{std::forward<TupleElement>(elems)...}; },
